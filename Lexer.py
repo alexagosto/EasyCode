@@ -26,7 +26,7 @@ reserved = {
     'equals': 'EQUALS',
     'end': 'END',
     'and': 'AND',
-    'or': 'OR',
+    'exact': 'EXACT',
     'between': 'BETWEEN',
     'endBlock': 'ENDBLOCK',
     'att': 'ATTRIBUTE'
