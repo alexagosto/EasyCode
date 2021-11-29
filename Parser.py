@@ -22,21 +22,55 @@ f = open('D:\\Programming stuff\\VSC\\PL4030 Project\\test.py','w')
 # have a comment explaining what they do. 
 #
 
+
+# Helping operands to clean up and error check intermediate code.
+def indent ():
+    global spaces 
+    for i in range(0, spaces):
+        f.write("\t")
+
+def variable_verify():
+    if names[id]:
+        return names[id]
+    print("Variable " + id + " is not in system.")
+
+def p_error(p):
+    print("Syntax error by user, check syntax and try again.")
+
+
 def p_expression_plus(p):
     'expression : expression PLUS term' 
-    spaces()
+    indent()
+    f.write(str(p[1]) + " + " + str(p[3]) + "\n")
+    print ("p_expression_add") 
 
 
 def p_expression_minus(p):
+    'expression : expression MINUS term' 
+    indent()
+    f.write(str(p[1]) + " - " + str(p[3]) + "\n")
+    print ("p_expression_minus") 
 
 
 def p_expression_times(p):
+    'expression : expression TIMES term' 
+    indent()
+    f.write(str(p[1]) + " * " + str(p[3]) + "\n")
+    print ("p_expression_times") 
 
 
 def p_expression_db(p):
+    'expression : expression DIVIDEDBY term' 
+    indent()
+    f.write(str(p[1]) + " / " + str(p[3]) + "\n")
+    print ("p_expression_db") 
 
 
 def p_expression_equals(p):
+    'expression : ID EQUALS expression' 
+    indent()
+    f.write(str(p[1]) + " = " + str(p[3]) + "\n")
+    print ("p_expression_equals") 
 
 
 def p_expression_att(p):
@@ -87,7 +121,9 @@ def p_factor_num(p):
 
 
 def p_factor_expr(p):  
-
+    'factor : LPAREN expression RPAREN'
+    p[0] = p[2]
+    print ("p_factor_expr")
 
 # End of converting operands.
 
@@ -99,20 +135,6 @@ def p_endblock(p):
     p[0] = p[1]
     global spaces
     spaces = spaces - 1 
-
-# Helping operands to clean up and error check intermediate code.
-def indent():
-    global indents 
-    for i in range(0, spaces):
-        f.write("\t")
-
-def variable_verify():
-    if names[id]:
-        return names[id]
-    print("Variable " + id + " is not in system.")
-
-def p_error(p):
-    print("Syntax error by user, check syntax and try again.")
 
 
 
