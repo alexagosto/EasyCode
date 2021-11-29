@@ -23,6 +23,7 @@ TT_DIV = 'TT_DIV'
 TT_LPAREN = 'TT_LPAREN'
 TT_RPAREN = 'TT_RPAREN'
 TT_EOF = 'EOF'
+END = 'END'
 
 #CONSTANTS
 DIGITS = '0123456789'
@@ -312,7 +313,7 @@ def run(fn, text):
 
 
 
-
+# Possible operands for later
 # reserved = {
 #     'display': 'DISPLAY',
 #     'for': 'FOR',
