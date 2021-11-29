@@ -93,7 +93,7 @@ def p_factor_expr(p):
 def p_expression_end(p):
 
 # Helping operands to clean up and error check intermediate code.
-def indent ();
+def indent ():
 
 
 def variable_verify():
