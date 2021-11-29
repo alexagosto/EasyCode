@@ -32,7 +32,7 @@ reserved = {
     'att': 'ATTRIBUTE'
 }
 #Added values of reserved words to list.
-+list(reserved.values())
+tokens += list(reserved.values())
 
 #Token Specifications
 def t_NUMBER(t):
