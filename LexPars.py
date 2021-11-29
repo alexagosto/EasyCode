@@ -14,15 +14,16 @@ sys.path.insert(0, "../..")
 
 
 #TOKENS
-TT_INT = 'TT_INT'
-TT_FLOAT = 'TT_FLOAT'
-TT_PLUS = 'TT_PLUS'
-TT_MINUS = 'TT_MINUS'
-TT_MUL = 'TT_MUL'
-TT_DIV = 'TT_DIV'
-TT_LPAREN = 'TT_LPAREN'
-TT_RPAREN = 'TT_RPAREN'
+TT_INT = 'INT'
+TT_FLOAT = 'FLOAT'
+TT_PLUS = 'PLUS'
+TT_MINUS = 'MINUS'
+TT_MUL = 'MUL'
+TT_DIV = 'DIV'
+TT_LPAREN = 'LPAREN'
+TT_RPAREN = 'RPAREN'
 TT_EOF = 'EOF'
+TT_EXPONENT = 'EXPONENT'
 END = 'END'
 
 #CONSTANTS
@@ -62,7 +63,7 @@ class RTError(Error):
         errorLog = f'{self.error_name}: {self.details}\n'
         errorlog = errorLog + '\n\n' + string_with_arrows(self.pos_start.ftxt, self.pos_start, self.pos_end)   
         return errorLog
-        
+
     def generate_TB(self):
         errorLog = ''
         pos = self.pos_start
@@ -154,6 +155,10 @@ class Lexer:
 
             elif self.current_char == '/':
                 tokens.append(Token(TT_DIV, pos_start=self.pos))
+                self.advance()
+
+            elif self.current_char == '^':
+                tokens.append(Token(TT_EXPONENT, pos_start=self.pos))
                 self.advance()
 
             elif self.current_char == '(':
@@ -272,18 +277,12 @@ class Parser:
             return result.failure(InvalidSyntaxError(self.current_tok.pos_start, self.current_tok.pos_end, "Expected '+', '-', or '/'"))
         return result
     
-    # Defenitions for each different type of expression, based on recursion. 
-    def factor(self):
+    # Defenitions for each different type of expression, based on recursion. AKA GRAMMAR RULES
+    def atom(self):
         result = ParseResult()
         tok = self.current_tok
 
-        if tok.type in (TT_PLUS, TT_MINUS):
-            result.register(self.advance())
-            factor = result.register(self.factor())
-            if result.error: return result
-            return result.success(UnaryOpNode(tok, factor))
-        
-        elif tok.type in (TT_INT, TT_FLOAT):
+        if tok.type in (TT_INT, TT_FLOAT):
             result.register(self.advance())
             return result.success(NumberNode(tok))
 
@@ -296,8 +295,22 @@ class Parser:
                 return result.success(expr)
             else: 
                 return result.failure(InvalidSyntaxError(self.current_tok.pos_start, self.current_tok.pos_end, "Expected ')'"))
+        return result.failure(InvalidSyntaxError(self.current_tok.pos_start, self.current_tok.pos_end, "Expected int, float, '+', '-', or '('"))
+    
+    def power(self):
+        return self.binary_op(self.atom, (TT_EXPONENT, ), self.factor)
 
-        return result.failure(InvalidSyntaxError(tok.pos_start, tok.pos_end, "Expected int or float."))
+    def factor(self):
+        result = ParseResult()
+        tok = self.current_tok
+
+        if tok.type in (TT_PLUS, TT_MINUS):
+            result.register(self.advance())
+            factor = result.register(self.factor())
+            if result.error: return result
+            return result.success(UnaryOpNode(tok, factor))
+
+        return self.power()
 
     
     def term(self):
@@ -307,15 +320,17 @@ class Parser:
     def expression(self):
         return self.binary_op(self.term, (TT_PLUS, TT_MINUS))
 
-    def binary_op(self, func, ops):
+    def binary_op(self, funcA, ops, funcB=None):
+        if funcB == None:
+            funcB = funcA
         result = ParseResult()
-        left = result.register(func())
+        left = result.register(funcA())
         if result.error: return result
 
         while self.current_tok.type in ops:
             op_tok = self.current_tok
             result.register(self.advance())
-            right = result.register(func())
+            right = result.register(funcB())
             if result.error: return result
             left = BinaryOpNode(left, op_tok, right)
         return result.success(left)
@@ -338,7 +353,7 @@ class Context:
 
 #Runtime Results
 class RTResult:
-    def __init__(self_):
+    def __init__(self):
         self.value = None
         self.error = None
 
@@ -390,6 +405,10 @@ class Number:
                 return None, RTError(different.pos_start, different.pos_end, 'Division by Zero', self.context)
             
             return Number(self.value / different.value).set_context(self.context), None
+    
+    def power_of(self, different):
+        if isinstance(different, Number):
+            return Number(self.value ** different.value).set_context(self.context), None
 
     def __repr__(self):
         return str(self.value)
@@ -426,8 +445,11 @@ class Interpreter:
         elif node.op_tok.type == TT_MUL:
             result, error = left.multiplied_by(right)   
 
-        elif node.op_tok.value == TT_DIV:
-            result, error = left.divided_by(right)  
+        elif node.op_tok.type == TT_DIV:
+            result, error = left.divided_by(right) 
+
+        elif node.op_tok.type == TT_EXPONENT:
+            result, error = left.power_of(right) 
 
         if error: return res.failure(error)
         else:
