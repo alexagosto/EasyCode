@@ -131,12 +131,12 @@ def p_expression_end(p):
 # Following operands convert inputs of other operands.
 def p_term_ID(p):
     'term : ID'
-    p[0] = variable_verify(p[1])
+    p[0] = p[1]
     print("p_expression_ID")
 
 
 def p_expression_term(p):
-    'expression : Term'
+    'expression : term'
     p[0] = p[1]
     print('p_expression_term')
 
