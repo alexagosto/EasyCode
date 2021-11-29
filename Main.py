@@ -9,6 +9,6 @@ while(True):
     except KeyboardInterrupt:
         break
     if not text: continue
-    #result = parse and lex here btw
+    result = parser.parser.parse(text)
     if not result == None:
         print(result)
