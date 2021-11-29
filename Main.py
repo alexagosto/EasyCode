@@ -1,14 +1,10 @@
+import Lexer as lexer
 import Parser as parser
 
 print('Initializing EasyCode')
 while(True):
-    try:
-        text = input('EasyCode > ')
-    except EOFError:
-        break
-    except KeyboardInterrupt:
-        break
-    if not text: continue
-    result = parser.parser.parse(text)
-    if not result == None:
-        print(result)
+    text = input('EasyCode > ')
+    result, error = lexer.run(text)
+    #result = parser.parser.parse(text)
+    if error: print(error.as_string)
+    else: print(result)

@@ -33,7 +33,7 @@ class IllegalCharError(Error):
         super().__init__('Illegal Character', details)
 
 class Token:
-    def __init__(self, type_, value):
+    def __init__(self, type_, value=None):
         self.type = type_
         self.value = value
     
@@ -51,7 +51,7 @@ class Lexer:
 
     def advance(self):
         self.pos += 1
-        self.current_char = self.text[pos] if self.pos < len(self.text) else None
+        self.current_char = self.text[self.pos] if self.pos < len(self.text) else None
 
     def make_tokens(self):
         tokens = []
@@ -62,7 +62,7 @@ class Lexer:
                 self.advance()
 
             elif self.current_char in DIGITS:
-                tokens.append(self.makeNum())
+                tokens.append(self.make_number())
 
             elif self.current_char == '+':
                 tokens.append(Token(TT_PLUS))
@@ -107,7 +107,8 @@ class Lexer:
                 num_str += '.'
             else:
                 num_str += self.current_char
-        
+            self.advance()
+            
         if period_count == 0:
             return Token(TT_INT, int(num_str))
         else:
