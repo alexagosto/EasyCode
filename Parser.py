@@ -74,31 +74,52 @@ def p_expression_equals(p):
 
 
 def p_expression_att(p):
-
+    'expression : ID ATTRIBUTE ID EQUALS term'
+    f.write(str(p[1]) + " . " + str(p[3]) + " = " + str(p[5]) + "\n")
 
 def p_expression_display(p):
-
+    'expression : DISPLAY factor'
+    f.write(str(p[1]) + " " + str(p[2]) + "\n")
 
 def p_for(p):
-
+    'expression : FOR ID BETWEEN term AND term'
+    indent()
+    global spaces
+    spaces = spaces + 1
+    f.write("for " + str(p[2]) + " in range(" + str(p[4]) + "," + str(p[6]) + ") :" + "\n")
 
 def p_condition_while(p):
-
+    'condition : WHILE' 
+    p[0] = p[1]
 
 def p_condition_if(p):
-
+    'condition : IF'
+    p[0] = p[1]
 
 def p_condition_else(p):
-
+    'condition : ELSE'
+    p[0] = p[1]
 
 def p_condition_gt(p):
-
+    'expression : condition term GREATERTHAN term'
+    indent()
+    f.write(str(p[1]) + " " + str(p[2]) + " >= " + str(p[4]) + " :" + "\n")
+    global spaces
+    spaces = spaces + 1
 
 def p_condition_lt(p):
-
+    'expression : condition term LESSTHAN term'
+    indent()
+    f.write(str(p[1]) + " " + str(p[2]) + " <= " + str(p[4]) + " :" + "\n")
+    global spaces
+    spaces = spaces + 1
 
 def p_condition_exact(p):
-
+    'expression : condition term EXACT term'
+    indent()
+    f.write(str(p[1]) + " " + str(p[2]) + " == " + str(p[4]) + " :" + "\n")
+    global spaces 
+    spaces = spaces + 1
 
 # End of syntax analysis. 
 def p_expression_end(p):
@@ -109,21 +130,34 @@ def p_expression_end(p):
 
 # Following operands convert inputs of other operands.
 def p_term_ID(p):
+    'term : ID'
+    p[0] = variable_verify(p[1])
+    print("p_expression_ID")
 
 
 def p_expression_term(p):
+    'expression : Term'
+    p[0] = p[1]
+    print('p_expression_term')
 
 
 def p_term_factor(p):
+    'term : factor'
+    p[0] = p[1]
+    print("p_term_factor")
 
 
 def p_factor_num(p):
+    'factor : NUMBER'
+    p[0] = p[1]
+    print("p_term_num")
 
 
 def p_factor_expr(p):  
     'factor : LPAREN expression RPAREN'
     p[0] = p[2]
     print ("p_factor_expr")
+    
 
 # End of converting operands.
 
