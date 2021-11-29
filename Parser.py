@@ -23,6 +23,8 @@ f = open('D:\\Programming stuff\\VSC\\PL4030 Project\\test.py','w')
 #
 
 def p_expression_plus(p):
+    'expression : expression PLUS term' 
+    spaces()
 
 
 def p_expression_minus(p):
@@ -65,8 +67,10 @@ def p_condition_exact(p):
 
 
 # End of syntax analysis. 
-def p_endblock(p):
-
+def p_expression_end(p):
+    'expression : END'
+    f.close()
+    sys.exit()
 
 
 # Following operands convert inputs of other operands.
@@ -90,17 +94,25 @@ def p_factor_expr(p):
 
 
 # Used to change indents/spaces of next line. 
-def p_expression_end(p):
+def p_endblock(p):
+    'expression : ENDBLOCK'
+    p[0] = p[1]
+    global spaces
+    spaces = spaces - 1 
 
 # Helping operands to clean up and error check intermediate code.
-def indent ():
-
+def indent():
+    global indents 
+    for i in range(0, spaces):
+        f.write("\t")
 
 def variable_verify():
-
+    if names[id]:
+        return names[id]
+    print("Variable " + id + " is not in system.")
 
 def p_error(p):
-
+    print("Syntax error by user, check syntax and try again.")
 
 
 
