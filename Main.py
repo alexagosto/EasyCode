@@ -1,5 +1,5 @@
 import LexPars as shell
-import LexNatLan 
+import LexNatLan
 print('Initializing EasyCode')
 while(True):
     text = input('EasyCode > ')

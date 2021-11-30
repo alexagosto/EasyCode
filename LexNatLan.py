@@ -1,42 +1,52 @@
 
-COMANDS = ['plus', 'minus', 'divide', 'module', 'exact',
-           'equal',
-           'not-equal',
-           'less-than',
-           'greater-than',
-           'less-than-equal',
-           'greater-than-equal', ]
+from LexPars import Number
 
 
-def verify_commands(txt):
+COMANDS = [
+    'plus', 'minus', 'divide',
+    'multiply', 'pow', 'equal', 'notEqual',
+    'lessThan', 'greaterThan', 'module', 'exact',
+    'lparen', 'rparen'
+]
+
+
+def mathOperation(text, op):
+    if op in text:
+        if(text.split(op, 1)[0].isnumeric()):
+            return True
+
+
+def verify_commands(text):
     for op in COMANDS:
-        if op in txt:
+        if op in text:
             return True
 
 
 def lang_to_op(text):
-    if('plus' in text):
+    if(mathOperation(text, 'plus')):
         return text.replace('plus', '+')
-    elif('minus' in text):
+    elif(mathOperation(text, 'minus')):
         return text.replace('minus', '-')
-    elif('divide' in text):
+    elif(mathOperation(text, 'divide')):
         return text.replace('divide', '/')
-    elif('module' in text):
+    elif(mathOperation(text, 'multiply')):
+        return text.replace('multiply', '*')
+    elif(mathOperation(text, 'module')):
         return text.replace('module', '%')
-    elif('exact' in text):
+    elif(mathOperation(text, 'exact')):
         return text.replace('exact', '==')
-    elif('equal' in text):
+    elif(mathOperation(text, 'lessThan')):
+        return text.replace('lessThan', '<')
+    elif(mathOperation(text, 'greaterThan')):
+        return text.replace('greatThan', '>')
+    elif(mathOperation(text, 'equal')):
         return text.replace('equal', '=')
-    elif('not-equal' in text):
-        return text.replace('not-equal', '!=')
-    elif('less-than' in text):
-        return text.replace('less-than', '<')
-    elif('more-than' in text):
-        return text.replace('more-than', '>')
-    elif('less-than-equal' in text):
-        return text.replace('less-than-equal', '<=')
-    elif('greater-than-equal' in text):
-        return text.replace('greater-than-equal', '>=')
+    elif(mathOperation(text, 'notEqual')):
+        return text.replace('notEqual', '!=')
+    elif(mathOperation(text, 'lparen')):
+        return text.replace('lparen', '(')
+    elif(mathOperation(text, 'rparen')):
+        return text.replace('rparen', ')')
 
 
 def run(text):
