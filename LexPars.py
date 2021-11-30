@@ -400,25 +400,25 @@ class WhileNode:
         self.pos_end = self.body_node.pos_end
 
 class FuncDefNode:
-	def __init__(self, var_name_tok, arg_name_toks, body_node):
-		self.var_name_tok = var_name_tok
-		self.arg_name_toks = arg_name_toks
-		self.body_node = body_node
+    def __init__(self, var_name_tok, arg_name_toks, body_node):
+        self.var_name_tok = var_name_tok
+        self.arg_name_toks = arg_name_toks
+        self.body_node = body_node
 
-		if self.var_name_tok: self.pos_start = self.var_name_tok.pos_start
-		elif len(self.arg_name_toks) > 0: self.pos_start = self.arg_name_toks[0].pos_start
-		else: self.pos_start = self.body_node.pos_start
+        if self.var_name_tok: self.pos_start = self.var_name_tok.pos_start
+        elif len(self.arg_name_toks) > 0: self.pos_start = self.arg_name_toks[0].pos_start
+        else: self.pos_start = self.body_node.pos_start
 
-		self.pos_end = self.body_node.pos_end
+        self.pos_end = self.body_node.pos_end
 
 class CallNode:
-	def __init__(self, node_to_call, arg_nodes):
-		self.node_to_call = node_to_call
-		self.arg_nodes = arg_nodes
-		self.pos_start = self.node_to_call.pos_start
+    def __init__(self, node_to_call, arg_nodes):
+        self.node_to_call = node_to_call
+        self.arg_nodes = arg_nodes
+        self.pos_start = self.node_to_call.pos_start
 
-		if len(self.arg_nodes) > 0: self.pos_end = self.arg_nodes[len(self.arg_nodes) - 1].pos_end
-		else: self.pos_end = self.node_to_call.pos_end
+        if len(self.arg_nodes) > 0: self.pos_end = self.arg_nodes[len(self.arg_nodes) - 1].pos_end
+        else: self.pos_end = self.node_to_call.pos_end
 
 
 
@@ -470,6 +470,66 @@ class Parser:
 
 
     # Defenitions for each different type of expression, based on recursion. AKA GRAMMAR RULES
+    def func_def(self):
+        res = ParseResult()
+
+        if not self.current_tok.matches(TT_KEYWORD, 'FUN'):
+            return res.failure(InvalidSyntaxError(self.current_tok.pos_start, self.current_tok.pos_end, f"Expected 'FUN'"))
+
+        res.register_advancement()
+        self.advance()
+
+        if self.current_tok.type == TT_ID:
+            var_name_tok = self.current_tok
+            res.register_advancement()
+            self.advance()
+            if self.current_tok.type != TT_LPAREN:
+                return res.failure(InvalidSyntaxError(self.current_tok.pos_start, self.current_tok.pos_end, f"Expected '('"))
+        else:
+            var_name_tok = None
+            if self.current_tok.type != TT_LPAREN:
+                return res.failure(InvalidSyntaxError(self.current_tok.pos_start, self.current_tok.pos_end, f"Expected identifier or '('"))
+        
+        res.register_advancement()
+        self.advance()
+        arg_name_toks = []
+
+        if self.current_tok.type == TT_ID:
+            arg_name_toks.append(self.current_tok)
+            res.register_advancement()
+            self.advance()
+            
+            while self.current_tok.type == TT_COMMA:
+                res.register_advancement()
+                self.advance()
+
+                if self.current_tok.type != TT_ID:
+                    return res.failure(InvalidSyntaxError(self.current_tok.pos_start, self.current_tok.pos_end, f"Expected identifier"))
+
+                arg_name_toks.append(self.current_tok)
+                res.register_advancement()
+                self.advance()
+            
+            if self.current_tok.type != TT_RPAREN:
+                return res.failure(InvalidSyntaxError(self.current_tok.pos_start, self.current_tok.pos_end, f"Expected ',' or ')'"))
+        else:
+            if self.current_tok.type != TT_RPAREN:
+                return res.failure(InvalidSyntaxError(self.current_tok.pos_start, self.current_tok.pos_end, f"Expected identifier or ')'"))
+
+        res.register_advancement()
+        self.advance()
+
+        if self.current_tok.type != TT_ARROW:
+            return res.failure(InvalidSyntaxError(self.current_tok.pos_start, self.current_tok.pos_end, f"Expected '->'"))
+
+        res.register_advancement()
+        self.advance()
+        node_to_return = res.register(self.expr())
+        if res.error: return res
+
+        return res.success(FuncDefNode(var_name_tok, arg_name_toks, node_to_return))
+    
+    
     def for_expr(self):
         response = ParseResult()
         if not self.current_tok.matches(TT_KEYWORD, 'FOR'):
@@ -620,9 +680,41 @@ class Parser:
 
         return response.failure(InvalidSyntaxError(tok.pos_start, tok.pos_end, "Expected int, float, identifier, '+', '-', '('"))
 
+    def call(self):
+        res = ParseResult()
+        atom = res.register(self.atom())
+        if res.error: return res
+
+        if self.current_tok.type == TT_LPAREN:
+            res.register_advancement()
+            self.advance()
+            arg_nodes = []
+
+            if self.current_tok.type == TT_RPAREN:
+                res.register_advancement()
+                self.advance()
+            else:
+                arg_nodes.append(res.register(self.expr()))
+                if res.error:
+                    return res.failure(InvalidSyntaxError(self.current_tok.pos_start, self.current_tok.pos_end, "Expected ')', 'VAR', 'IF', 'FOR', 'WHILE', 'FUN', int, float, identifier, '+', '-', '(' or 'NOT'"))
+
+                while self.current_tok.type == TT_COMMA:
+                    res.register_advancement()
+                    self.advance()
+
+                    arg_nodes.append(res.register(self.expr()))
+                    if res.error: return res
+
+                if self.current_tok.type != TT_RPAREN:
+                    return res.failure(InvalidSyntaxError(self.current_tok.pos_start, self.current_tok.pos_end, f"Expected ',' or ')'"))
+
+                res.register_advancement()
+                self.advance()
+            return res.success(CallNode(atom, arg_nodes))
+        return res.success(atom)
 
     def power(self):
-        return self.bin_op(self.atom, (TT_EXPONENT, ), self.factor)
+        return self.bin_op(self.call, (TT_EXPONENT, ), self.factor)
 
 
     def factor(self):
