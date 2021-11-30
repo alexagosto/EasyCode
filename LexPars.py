@@ -85,50 +85,50 @@ LETTERS_DIGITS = LETTERS + DIGITS
 
 # ERRORS
 class Error:
-	def __init__(self, pos_start, pos_end, error_name, details):
-		self.pos_start = pos_start
-		self.pos_end = pos_end
-		self.error_name = error_name
-		self.details = details
-	
-	def as_string(self):
-		result  = f'{self.error_name}: {self.details}\n'
-		result += f'File {self.pos_start.fn}, line {self.pos_start.ln + 1}'
-		result += '\n\n' + string_with_arrows(self.pos_start.ftxt, self.pos_start, self.pos_end)
-		return result
+    def __init__(self, pos_start, pos_end, error_name, details):
+        self.pos_start = pos_start
+        self.pos_end = pos_end
+        self.error_name = error_name
+        self.details = details
+    
+    def as_string(self):
+        result  = f'{self.error_name}: {self.details}\n'
+        result += f'File {self.pos_start.fn}, line {self.pos_start.ln + 1}'
+        result += '\n\n' + string_with_arrows(self.pos_start.ftxt, self.pos_start, self.pos_end)
+        return result
 
 class IllegalCharError(Error):
-	def __init__(self, pos_start, pos_end, details):
-		super().__init__(pos_start, pos_end, 'Illegal Character', details)
+    def __init__(self, pos_start, pos_end, details):
+        super().__init__(pos_start, pos_end, 'Illegal Character', details)
 
 class ExpectedCharError(Error):
-	def __init__(self, pos_start, pos_end, details):
-		super().__init__(pos_start, pos_end, 'Expected Character', details)
+    def __init__(self, pos_start, pos_end, details):
+        super().__init__(pos_start, pos_end, 'Expected Character', details)
 
 class InvalidSyntaxError(Error):
-	def __init__(self, pos_start, pos_end, details=''):
-		super().__init__(pos_start, pos_end, 'Invalid Syntax', details)
+    def __init__(self, pos_start, pos_end, details=''):
+        super().__init__(pos_start, pos_end, 'Invalid Syntax', details)
 
 class RTError(Error):
-	def __init__(self, pos_start, pos_end, details, context):
-		super().__init__(pos_start, pos_end, 'Runtime Error', details)
-		self.context = context
+    def __init__(self, pos_start, pos_end, details, context):
+        super().__init__(pos_start, pos_end, 'Runtime Error', details)
+        self.context = context
 
-	def as_string(self):
-		result  = self.generate_traceback()
-		result += f'{self.error_name}: {self.details}'
-		result += '\n\n' + string_with_arrows(self.pos_start.ftxt, self.pos_start, self.pos_end)
-		return result
+    def as_string(self):
+        result  = self.generate_traceback()
+        result += f'{self.error_name}: {self.details}'
+        result += '\n\n' + string_with_arrows(self.pos_start.ftxt, self.pos_start, self.pos_end)
+        return result
 
-	def generate_traceback(self):
-		result = ''
-		pos = self.pos_start
-		ctx = self.context
-		while ctx:
-			result = f'  File {pos.fn}, line {str(pos.ln + 1)}, in {ctx.display_name}\n' + result
-			pos = ctx.parent_entry_pos
-			ctx = ctx.parent
-		return 'Traceback (most recent call last):\n' + result
+    def generate_traceback(self):
+        result = ''
+        pos = self.pos_start
+        ctx = self.context
+        while ctx:
+            result = f'  File {pos.fn}, line {str(pos.ln + 1)}, in {ctx.display_name}\n' + result
+            pos = ctx.parent_entry_pos
+            ctx = ctx.parent
+        return 'Traceback (most recent call last):\n' + result
 
 # POSITION
 class Position:
@@ -204,8 +204,7 @@ class Lexer:
                 self.advance()
 
             elif self.current_char == '-':
-                tokens.append(Token(TT_MINUS, pos_start=self.pos))
-                self.advance()
+                tokens.append(self.make_minus_or_arrow())
 
             elif self.current_char == '*':
                 tokens.append(Token(TT_MUL, pos_start=self.pos))
@@ -240,6 +239,10 @@ class Lexer:
 
             elif self.current_char == '>':
                 tokens.append(self.make_greaterThan())
+
+            elif self.current_char == ',':
+                tokens.append(Token(TT_COMMA, pos_start=self.pos))
+                self.advance()
 
             else:
                 pos_start = self.pos.copy()
@@ -309,6 +312,15 @@ class Lexer:
         if self.current_char == '=':
             self.advance()
             tok_type = TT_GTE
+        return Token(tok_type, pos_start=pos_start, pos_end=self.pos)
+
+    def make_minus_or_arrow(self):
+        tok_type = TT_MINUS
+        pos_start = self.pos.copy()
+        self.advance()
+        if self.current_char == '>':
+            self.advance()
+            tok_type = TT_ARROW
         return Token(tok_type, pos_start=pos_start, pos_end=self.pos)
 
         
@@ -386,6 +398,28 @@ class WhileNode:
         self.body_node = body_node
         self.pos_start = self.condition_node.pos_start
         self.pos_end = self.body_node.pos_end
+
+class FuncDefNode:
+	def __init__(self, var_name_tok, arg_name_toks, body_node):
+		self.var_name_tok = var_name_tok
+		self.arg_name_toks = arg_name_toks
+		self.body_node = body_node
+
+		if self.var_name_tok: self.pos_start = self.var_name_tok.pos_start
+		elif len(self.arg_name_toks) > 0: self.pos_start = self.arg_name_toks[0].pos_start
+		else: self.pos_start = self.body_node.pos_start
+
+		self.pos_end = self.body_node.pos_end
+
+class CallNode:
+	def __init__(self, node_to_call, arg_nodes):
+		self.node_to_call = node_to_call
+		self.arg_nodes = arg_nodes
+		self.pos_start = self.node_to_call.pos_start
+
+		if len(self.arg_nodes) > 0: self.pos_end = self.arg_nodes[len(self.arg_nodes) - 1].pos_end
+		else: self.pos_end = self.node_to_call.pos_end
+
 
 
 # PARSE RESULT
