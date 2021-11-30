@@ -3,6 +3,7 @@ import sys
 from typing import Text
 from arrows import *
 import string
+import SymbolTable as symboltable
 sys.path.insert(0, "../..")
 
 
@@ -123,7 +124,7 @@ class Token:
         
         if pos_end:
             self.pos_end = pos_end.copy()
-
+    #function to determine if a target token matches given constraints
     def matches(self,type_, value):
         return self.type == type_ and self.value == value
 
@@ -269,6 +270,18 @@ class UnaryOpNode:
     def __repr__(self):
         return f'({self.op_tok}, {self.node})'
 
+class VarAssignNode:
+    def __init__(self, var_name_tok, value_node):
+        self.var_name_tok = var_name_tok
+        self.value_node = value_node
+        self.pos_start = self.var_name_tok.pos_start
+        self.pos_end = self.value_node.pos_end
+
+class VarAccessNode:
+    def __init__(self,var_name_tok):
+        self.var_name_tok = var_name_tok
+        self.pos_start = self.var_name_tok.pos_start
+        self.pos_end = self.var_name_tok.pos_end
 
 #PARSER RESULT 
 class ParseResult:
@@ -321,6 +334,10 @@ class Parser:
             result.register(self.advance())
             return result.success(NumberNode(tok))
 
+        elif tok.type == TT_ID:
+            result.register(self.advance())
+            return result.success(VarAccessNode(tok))
+
         elif tok.type == TT_LPAREN:
             result.register(self.advance())
             expr = result.register(self.expression())
@@ -353,6 +370,25 @@ class Parser:
 
 
     def expression(self):
+        result = ParseResult()
+
+        if self.current_tok.matches(TT_KEYWORD, 'VAR'):
+            result.register(self.advance())
+
+            if self.current_tok.type != TT_ID:
+                return result.failure(InvalidSyntaxError(self.current_tok.pos_start, self.current_tok.pos_end, "Expected identifier"))
+
+            var_name = self.current_tok
+            result.register(self.advance())
+
+            if self.current_tok.type != TT_EQ:
+                return result.failure(InvalidSyntaxError(self.current_tok.pos_start, self.current_tok.pos_end, "Expected equals"))
+
+            result.register(self.advance())
+            expr = result.register(self.expression())
+            if result.error: return result
+            return result.success(VarAssignNode(var_name, expr))
+
         return self.binary_op(self.term, (TT_PLUS, TT_MINUS))
 
     def binary_op(self, funcA, ops, funcB=None):
@@ -379,7 +415,9 @@ class Context:
     def __init__(self, display_name, parent=None, parent_entry_pos=None):
         self.display_name = display_name
         self.parent = parent
-        self. parent_entry_pos = parent_entry_pos
+        self.parent_entry_pos = parent_entry_pos
+        self.symbol_table = None
+        
 
 ##############################################################################################################
 ##                                  INTERPRETER
@@ -464,6 +502,23 @@ class Interpreter:
     def visit_NumberNode(self, node, context):
         return RTResult().success(Number(node.tok.value).set_context(context).set_pos(node.pos_start, node.pos_end))
 
+    def visit_VarAccessNode(self, node, context):
+        res = RTResult()
+        var_name = node.var_name_tok.value
+        value = context.symbol_table.get(var_name)
+
+        if not value:
+            return res.failure(RTError(node.pos_start, node.pos_end, f"'{var_name}' is not defined", context))
+        return res.success(value)
+
+    def visit_VarAssignNode(self, node, context):
+        res = RTResult()
+        var_name = node.var_name_tok.value
+        value = res.register(self.visit(node.value_node, context))
+        if res.error: return res
+        context.symbol_table.set(var_name, value)
+        return res.success(value)
+
     def visit_BinaryOpNode(self, node, context):
         res = RTResult()
         left = res.register(self.visit(node.left_node, context))
@@ -517,6 +572,10 @@ class Interpreter:
 ##                                     RUN CODE
 ##############################################################################################################
 
+#Global Symbol Table
+global_symbol_table = symboltable.SymbolTable()
+global_symbol_table.set ("null", Number(0))
+
 
 #RUN 
 def run(fn, text):
@@ -532,6 +591,7 @@ def run(fn, text):
     #run interpreter
     interpreter = Interpreter()
     context = Context('<runningProgram>')
+    context.symbol_table = global_symbol_table
     result = interpreter.visit(ast.node, context)
 
     return result.value, result.error

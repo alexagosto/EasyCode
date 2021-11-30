@@ -8,5 +8,5 @@ factor  : (PLUS|MINUS) power
 
 power   : atom(EXPONENT factor)*
 
-atom    : INT|FLOAT
+atom    : INT|FLOAT|ID
         : LPAREN expr RPAREN 
