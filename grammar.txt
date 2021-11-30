@@ -1,4 +1,5 @@
-expr    : term ((PLUS|MINUS) term)*
+expr    : KEYWORD:VAR ID EQ expr  
+        : term ((PLUS|MINUS) term)*
 
 term    : factor ((MUL|DIV) factor)*
 

@@ -2,6 +2,7 @@
 import sys
 from typing import Text
 from arrows import *
+import string
 sys.path.insert(0, "../..")
 
 
@@ -14,6 +15,7 @@ sys.path.insert(0, "../..")
 
 
 #TOKENS
+#1st stage
 TT_INT = 'INT'
 TT_FLOAT = 'FLOAT'
 TT_PLUS = 'PLUS'
@@ -22,16 +24,27 @@ TT_MUL = 'MUL'
 TT_DIV = 'DIV'
 TT_LPAREN = 'LPAREN'
 TT_RPAREN = 'RPAREN'
+#2nd stage
 TT_EOF = 'EOF'
 TT_EXPONENT = 'EXPONENT'
+#3rd stage
+TT_ID = 'ID'
+TT_KEYWORD = 'KEYWORD'
+TT_EQ = 'EQ'
+
+VARLIST = [
+    'VAR'
+]
+
 END = 'END'
 
 #CONSTANTS
 DIGITS = '0123456789'
+LETTERS = string.ascii_letters
+LETTERS_DIGITS = LETTERS + DIGITS
 
 
 #ERRORS
-
 class Error:
     def __init__(self, pos_start, pos_end, error_name, details):
         self.pos_start = pos_start
@@ -40,9 +53,9 @@ class Error:
         self.details = details
 
     def as_string(self):
-        errorLog = f'{self.error_name}: {self.details}\n'
-        errorlog = errorLog + f'File {self.pos_start.fn}, line {self.pos_start.ln + 1}'
-        errorlog = errorLog + '\n\n' + string_with_arrows(self.pos_start.ftxt, self.pos_start, self.pos_end)
+        errorLog  = f'{self.error_name}: {self.details}\n'
+        errorLog += f'File {self.pos_start.fn}, line {self.pos_start.ln + 1}'
+        errorLog += '\n\n' + string_with_arrows(self.pos_start.ftxt, self.pos_start, self.pos_end)
         return errorLog
 
 class IllegalCharError(Error):
@@ -59,9 +72,9 @@ class RTError(Error):
         self.context = context
     
     def as_string(self):
-        errorLog = self.generate_TB()
-        errorLog = f'{self.error_name}: {self.details}\n'
-        errorlog = errorLog + '\n\n' + string_with_arrows(self.pos_start.ftxt, self.pos_start, self.pos_end)   
+        errorLog  = self.generate_traceback()
+        errorLog += f'{self.error_name}: {self.details}'
+        errorLog += '\n\n' + string_with_arrows(self.pos_start.ftxt, self.pos_start, self.pos_end)
         return errorLog
 
     def generate_TB(self):
@@ -109,9 +122,11 @@ class Token:
             self.pos_end.advance()
         
         if pos_end:
-            self.pos_end = pos_end
+            self.pos_end = pos_end.copy()
 
-    
+    def matches(self,type_, value):
+        return self.type == type_ and self.value == value
+
     def __repr__(self):
         if self.value: return f'{self.type}:{self.value}'
         return f'{self.type}'
@@ -140,6 +155,13 @@ class Lexer:
 
             elif self.current_char in DIGITS:
                 tokens.append(self.make_number())
+
+            elif self.current_char in LETTERS:
+                tokens.append(self.make_id())
+
+            elif self.current_char == '=':
+                tokens.append(Token(TT_EQ, pos_start=self.pos))
+                self.advance()
 
             elif self.current_char == '+':
                 tokens.append(Token(TT_PLUS, pos_start=self.pos))
@@ -174,6 +196,7 @@ class Lexer:
                 char = self.current_char
                 self.advance()
                 return [],IllegalCharError(pos_start, self.pos, "'" + char + "'")
+
         tokens.append(Token(TT_EOF, pos_start=self.pos))
         return tokens, None
 
@@ -196,6 +219,18 @@ class Lexer:
             return Token(TT_INT, int(num_str), pos_start, self.pos)
         else:
             return Token(TT_FLOAT , float(num_str), pos_start, self.pos)
+
+    def make_id(self):
+        id_str = ''
+        pos_start = self.pos.copy()
+
+        while self.current_char != None and self.current_char in LETTERS_DIGITS + '_':
+            id_str += self.current_char
+            self.advance()
+
+        tok_type = TT_KEYWORD if id_str in VARLIST else TT_ID
+        return Token(tok_type, id_str, pos_start, self.pos)
+
         
 
 
