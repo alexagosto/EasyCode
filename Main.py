@@ -5,4 +5,6 @@ while(True):
     text = input('EasyCode > ')
     result, error = shell.run('<stdin>', text)
     if error: print(error.as_string)
-    else: print(result)
+    elif result: print(result)
+
+# Run this python file and enjoy EasyCode. The following are possible operations and syntax that EasyCode allows you to do!
