@@ -45,6 +45,10 @@ VARLIST = [
     'THEN',#5th
     'ELIF',#5th
     'ELSE',#5th
+    'FOR', #6th
+    'TO',  #6th
+    'STEP',#6th
+    'WHILE'#7th
 
 ]
 
@@ -360,6 +364,24 @@ class IfNode:
         self.pos_start = self.cases[0][0].pos_start
         self.pos_end = (self.else_case or self.cases[len(self.cases) - 1][0]).pos_end
 
+class ForNode:
+    def __init__(self, var_name_tok, start_value_node, end_value_node, step_value_node, body_node):
+        self.var_name_tok = var_name_tok
+        self.start_value_node = start_value_node
+        self.end_value_node = end_value_node
+        self.step_value_node = step_value_node
+        self.body_node = body_node
+        self.pos_start = self.var_name_tok.pos_start
+        self.pos_end = self.body_node.pos_end
+
+class WhileNode:
+    def __init__(self, condition_node, body_node):
+        self.condition_node = condition_node
+        self.body_node = body_node
+        self.pos_start = self.condition_node.pos_start
+        self.pos_end = self.body_node.pos_end
+
+
 # PARSE RESULT
 class ParseResult:
     def __init__(self):
@@ -398,6 +420,7 @@ class Parser:
             self.current_tok = self.tokens[self.tok_idx]
         return self.current_tok
 
+
     # Main parse function
     def parse(self):
         response = self.expr()
@@ -405,7 +428,76 @@ class Parser:
             return response.failure(InvalidSyntaxError(self.current_tok.pos_start, self.current_tok.pos_end, "Expected '+', '-', '*', '/', '^', '==', '!=', '<', '>', <=', '>=', 'AND' or 'OR'"))
         return response
 
+
     # Defenitions for each different type of expression, based on recursion. AKA GRAMMAR RULES
+    def for_expr(self):
+        response = ParseResult()
+        if not self.current_tok.matches(TT_KEYWORD, 'FOR'):
+            return response.failure(InvalidSyntaxError(
+                self.current_tok.pos_start, self.current_tok.pos_end, f"Expected 'FOR'"))
+
+        response.register_advancement()
+        self.advance()
+        if self.current_tok.type != TT_ID:
+            return response.failure(InvalidSyntaxError(self.current_tok.pos_start, self.current_tok.pos_end, f"Expected identifier"))
+
+        var_name = self.current_tok
+        response.register_advancement()
+        self.advance()
+        if self.current_tok.type != TT_EQ:
+            return response.failure(InvalidSyntaxError(self.current_tok.pos_start, self.current_tok.pos_end, f"Expected '='"))
+        
+        response.register_advancement()
+        self.advance()
+        start_value = response.register(self.expr())
+        if response.error: return response
+
+        if not self.current_tok.matches(TT_KEYWORD, 'TO'):
+            return response.failure(InvalidSyntaxError(self.current_tok.pos_start, self.current_tok.pos_end, f"Expected 'TO'"))
+        
+        response.register_advancement()
+        self.advance()
+        end_value = response.register(self.expr())
+        if response.error: return response
+
+        if self.current_tok.matches(TT_KEYWORD, 'STEP'):
+            response.register_advancement()
+            self.advance()
+            step_value = response.register(self.expr())
+            if response.error: return response
+        else: step_value = None
+
+        if not self.current_tok.matches(TT_KEYWORD, 'THEN'):
+            return response.failure(InvalidSyntaxError(self.current_tok.pos_start, self.current_tok.pos_end,f"Expected 'THEN'"))
+
+        response.register_advancement()
+        self.advance()
+        body = response.register(self.expr())
+        if response.error: return response
+        return response.success(ForNode(var_name, start_value, end_value, step_value, body))
+    
+
+    def while_expr(self):
+        response = ParseResult()
+        if not self.current_tok.matches(TT_KEYWORD, 'WHILE'):
+            return response.failure(InvalidSyntaxError(self.current_tok.pos_start, self.current_tok.pos_end, f"Expected 'WHILE'"))
+
+        response.register_advancement()
+        self.advance()
+        condition = response.register(self.expr())
+        if response.error: return response
+
+        if not self.current_tok.matches(TT_KEYWORD, 'THEN'):
+            return response.failure(InvalidSyntaxError(self.current_tok.pos_start, self.current_tok.pos_end, f"Expected 'THEN'"))
+
+        response.register_advancement()
+        self.advance()
+        body = response.register(self.expr())
+        if response.error: return response
+
+        return response.success(WhileNode(condition, body))
+
+
     def if_expr(self):
         response = ParseResult()
         cases = []
@@ -446,7 +538,7 @@ class Parser:
 
         return response.success(IfNode(cases, else_case))
     
-    
+
     def atom(self):
         response = ParseResult()
         tok = self.current_tok
@@ -475,11 +567,23 @@ class Parser:
             if_expr = response.register(self.if_expr())
             if response.error: return response
             return response.success(if_expr)
-            
+
+        elif tok.matches(TT_KEYWORD, 'FOR'):
+            for_expr = response.register(self.for_expr())
+            if response.error: return response
+            return response.success(for_expr)
+
+        elif tok.matches(TT_KEYWORD, 'WHILE'):
+            while_expr = response.register(self.while_expr())
+            if response.error: return response
+            return response.success(while_expr)
+
         return response.failure(InvalidSyntaxError(tok.pos_start, tok.pos_end, "Expected int, float, identifier, '+', '-', '('"))
+
 
     def power(self):
         return self.bin_op(self.atom, (TT_EXPONENT, ), self.factor)
+
 
     def factor(self):
         response = ParseResult()
@@ -494,11 +598,14 @@ class Parser:
 
         return self.power()
 
+
     def term(self):
         return self.bin_op(self.factor, (TT_MUL, TT_DIV))
 
+
     def arith_expr(self):
         return self.bin_op(self.term, (TT_PLUS, TT_MINUS))
+
 
     def comp_expr(self):
         response = ParseResult()
@@ -517,6 +624,7 @@ class Parser:
                 self.current_tok.pos_start, self.current_tok.pos_end, "Expected int, float, identifier, '+', '-', '(' or 'NOT'"))
 
         return response.success(node)
+
 
     def expr(self):
         response = ParseResult()
@@ -545,6 +653,7 @@ class Parser:
         if response.error:
             return response.failure(InvalidSyntaxError(self.current_tok.pos_start, self.current_tok.pos_end, "Expected 'VAR', int, float, identifier, '+', '-', '(' or 'NOT'"))
         return response.success(node)
+
 
     def bin_op(self, func_a, ops, func_b=None):
         if func_b == None:
