@@ -41,6 +41,11 @@ VARLIST = [
     'AND', #4th
     'OR',  #4th
     'NOT', #4th
+    'IF',  #5th
+    'THEN',#5th
+    'ELIF',#5th
+    'ELSE',#5th
+
 ]
 
 #4th stage
@@ -216,9 +221,9 @@ class Lexer:
                 tokens.append(self.make_equals())
 
             elif self.current_char == '!':
-                tok, error = self.make_notEquals()
+                token, error = self.make_notEquals()
                 if error: return [], error 
-                self.advance()
+                tokens.append(token)
 
             elif self.current_char == '<':
                 tokens.append(self.make_lessThan())
@@ -328,6 +333,7 @@ class UnaryOpNode:
     def __init__(self, op_tok, node):
         self.op_tok = op_tok
         self.node = node
+
         self.pos_start = self.op_tok.pos_start
         self.pos_end = node.pos_end
 
@@ -347,6 +353,12 @@ class VarAssignNode:
         self.pos_start = self.var_name_tok.pos_start
         self.pos_end = self.value_node.pos_end
 
+class IfNode:
+    def __init__(self, cases, else_case):
+        self.cases = cases
+        self.else_case = else_case
+        self.pos_start = self.cases[0][0].pos_start
+        self.pos_end = (self.else_case or self.cases[len(self.cases) - 1][0]).pos_end
 
 # PARSE RESULT
 class ParseResult:
@@ -394,6 +406,47 @@ class Parser:
         return response
 
     # Defenitions for each different type of expression, based on recursion. AKA GRAMMAR RULES
+    def if_expr(self):
+        response = ParseResult()
+        cases = []
+        else_case = None
+        if not self.current_tok.matches(TT_KEYWORD, 'IF'):
+            return response.failure(InvalidSyntaxError(self.current_tok.pos_start, self.current_tok.pos_end, f"Expected 'IF'"))
+
+        response.register_advancement()
+        self.advance()
+        condition = response.register(self.expr())
+        if response.error: return response
+        if not self.current_tok.matches(TT_KEYWORD, 'THEN'):
+            return response.failure(InvalidSyntaxError(self.current_tok.pos_start, self.current_tok.pos_end, f"Expected 'THEN'"))
+
+        response.register_advancement()
+        self.advance()
+        expr = response.register(self.expr())
+        if response.error: return response
+        cases.append((condition, expr))
+        while self.current_tok.matches(TT_KEYWORD, 'ELIF'):
+            response.register_advancement()
+            self.advance()
+            condition = response.register(self.expr())
+            if response.error: return response
+            if not self.current_tok.matches(TT_KEYWORD, 'THEN'):
+                return response.failure(InvalidSyntaxError(self.current_tok.pos_start, self.current_tok.pos_end, f"Expected 'THEN'"))
+
+            response.register_advancement()
+            self.advance()
+            expr = response.register(self.expr())
+            if response.error: return response
+            cases.append((condition, expr))
+        if self.current_tok.matches(TT_KEYWORD, 'ELSE'):
+            response.register_advancement()
+            self.advance()
+            else_case = response.register(self.expr())
+            if response.error: return response
+
+        return response.success(IfNode(cases, else_case))
+    
+    
     def atom(self):
         response = ParseResult()
         tok = self.current_tok
@@ -418,6 +471,11 @@ class Parser:
                 return response.success(expr)
             else: return response.failure(InvalidSyntaxError(self.current_tok.pos_start, self.current_tok.pos_end, "Expected ')'"))
 
+        elif tok.matches(TT_KEYWORD, 'IF'):
+            if_expr = response.register(self.if_expr())
+            if response.error: return response
+            return response.success(if_expr)
+            
         return response.failure(InvalidSyntaxError(tok.pos_start, tok.pos_end, "Expected int, float, identifier, '+', '-', '('"))
 
     def power(self):
@@ -426,12 +484,14 @@ class Parser:
     def factor(self):
         response = ParseResult()
         tok = self.current_tok
+
         if tok.type in (TT_PLUS, TT_MINUS):
             response.register_advancement()
             self.advance()
             factor = response.register(self.factor())
             if response.error: return response
             return response.success(UnaryOpNode(tok, factor))
+
         return self.power()
 
     def term(self):
@@ -442,6 +502,7 @@ class Parser:
 
     def comp_expr(self):
         response = ParseResult()
+
         if self.current_tok.matches(TT_KEYWORD, 'NOT'):
             op_tok = self.current_tok
             response.register_advancement()
@@ -449,10 +510,12 @@ class Parser:
             node = response.register(self.comp_expr())
             if response.error: return response
             return response.success(UnaryOpNode(op_tok, node))
-        node = response.register(self.bin_op(self.arith_expr, (TT_EXACT, TT_NE, TT_LT, TT_GT, TT_LTE, TT_GTE)))
-        
+        node = response.register(self.bin_op(self.arith_expr, (TT_EQ, TT_NE, TT_LT, TT_GT, TT_LTE, TT_GTE)))
+
         if response.error:
-            return response.failure(InvalidSyntaxError(self.current_tok.pos_start, self.current_tok.pos_end,"Expected int, float, identifier, '+', '-', '(' or 'NOT'"))
+            return response.failure(InvalidSyntaxError(
+                self.current_tok.pos_start, self.current_tok.pos_end, "Expected int, float, identifier, '+', '-', '(' or 'NOT'"))
+
         return response.success(node)
 
     def expr(self):
@@ -551,6 +614,9 @@ class Number:
         self.context = context
         return self
 
+    def is_true(self):
+        return self.value != 0
+
     def added_to(self, second):
         if isinstance(second, Number):
             return Number(self.value + second.value).set_context(self.context), None
@@ -572,7 +638,6 @@ class Number:
     def power_of(self, second):
         if isinstance(second, Number):
             return Number(self.value ** second.value).set_context(self.context), None
-
 
     def get_comparison_equals(self, second):
         if isinstance(second, Number):
@@ -707,17 +772,33 @@ class Interpreter:
         response = RTResult()
         number = response.register(self.visit(node.node, context))
         if response.error: return response
+
         error = None
 
         if node.op_tok.type == TT_MINUS:
-            number, error = number.multed_by(Number(-1))
+            number, error = number.multiplied_by(Number(-1))
         elif node.op_tok.matches(TT_KEYWORD, 'NOT'):
             number, error = number.notted()
 
-        if error: return response.failure(error)
-        else: return response.success(number.set_pos(node.pos_start, node.pos_end))
+        if error:
+            return response.failure(error)
+        else:
+            return response.success(number.set_pos(node.pos_start, node.pos_end))
 
-
+    def visit_IfNode(self, node, context):
+        response = RTResult()
+        for condition, expr in node.cases:
+            condition_value = response.register(self.visit(condition, context))
+            if response.error: return response
+            if condition_value.is_true():
+                expr_value = response.register(self.visit(expr, context))
+                if response.error: return response
+                return response.success(expr_value)
+        if node.else_case:
+            else_value = response.register(self.visit(node.else_case, context))
+            if response.error: return response
+            return response.success(else_value)
+        return response.success(None)
 
 
 ##############################################################################################################
