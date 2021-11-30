@@ -82,12 +82,40 @@ Debug/Run the Main.py and enjoy EasyCode. The following are possible operations 
 
 
 ### 5- **FOR/WHILE LOOPS**
-    IN DEVELOPMENT
+    Easycode implements basic for/while loops that include a step function, they must be used with the THEN operand implemented in addition 4. Later on in development lists will be added and their result will be displayed in lists. The following are some examples of the loops being used wwith some of the previous additions to the language:
+    -Loop type | operand | usage
+    ->> USER INPUT
+    -> Terminal output
 
+    -FOR LOOP | FOR | usage:
+    ->> VAR factorial = 1
+    -> 1
+    ->> FOR i = 1 TO 6 THEN VAR result = result * i
+    ->> result
+    -> 120
+
+    -FOR LOOP | FOR | negative step for loop:
+    ->> VAR factorial = 1
+    -> 1
+    ->> FOR i = 5 TO 0 STEP -1 THEN VAR result = result * i
+    ->> result
+    -> 120
+
+    -WHILE LOOP | WHILE | usage:
+    ->> VAR i = 0
+    -> 0
+    ->> WHILE i < 100000 THEN VAR i = i + 1
+    (This will simply take a bit to complete as the language has no print function yet, the print, in addition to the list function will be added later on.)
+
+Keep in mind that the for loop is NOT inclusive, so in the first example above, it will iterate over 5 numbers, not 6.
+
+
+### 6- **Functions**
+    EasyCode
 ___
 
 The following is a log of progress on the language, starting at earliest development and
-
+TODO 
 11/28/2021:
 Currently the code will take an input and using a lexer and a parser creates intermediary code based around mathematical equations and with PEMDAS in mind.
 The code in its current state will not run any code as it has no iterpreter. That is the following process. 
