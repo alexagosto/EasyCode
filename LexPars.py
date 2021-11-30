@@ -861,56 +861,82 @@ class Number:
     def added_to(self, second):
         if isinstance(second, Number):
             return Number(self.value + second.value).set_context(self.context), None
+        else:
+            return None, Value.illegal_operation(self, second)
 
     def subtracted_by(self, second):
         if isinstance(second, Number):
             return Number(self.value - second.value).set_context(self.context), None
+        else:
+            return None, Value.illegal_operation(self, second)
 
     def multiplied_by(self, second):
         if isinstance(second, Number):
             return Number(self.value * second.value).set_context(self.context), None
+        else:
+            return None, Value.illegal_operation(self, second)
 
     def divided_by(self, second):
         if isinstance(second, Number):
             if second.value == 0:
                 return None, RTError(second.pos_start, second.pos_end, 'Division by zero',self.context)
             return Number(self.value / second.value).set_context(self.context), None
+        else:
+            return None, Value.illegal_operation(self, second)
 
     def power_of(self, second):
         if isinstance(second, Number):
             return Number(self.value ** second.value).set_context(self.context), None
+        else:
+            return None, Value.illegal_operation(self, second)
 
     def get_comparison_equals(self, second):
         if isinstance(second, Number):
             return Number(int(self.value == second.value)).set_context(self.context), None
+        else:
+            return None, Value.illegal_operation(self, second)
 
     def get_comparison_notEquals(self, second):
         if isinstance(second, Number):
             return Number(int(self.value != second.value)).set_context(self.context), None
+        else:
+            return None, Value.illegal_operation(self, second)
 
     def get_comparison_lessThan(self, second):
         if isinstance(second, Number):
             return Number(int(self.value < second.value)).set_context(self.context), None
+        else:
+            return None, Value.illegal_operation(self, second)
 
     def get_comparison_greaterThan(self, second):
         if isinstance(second, Number):
             return Number(int(self.value > second.value)).set_context(self.context), None
+        else:
+            return None, Value.illegal_operation(self, second)
 
     def get_comparison_lessThanEquals(self, second):
         if isinstance(second, Number):
             return Number(int(self.value <= second.value)).set_context(self.context), None
+        else:
+            return None, Value.illegal_operation(self, second)
 
     def get_comparison_greaterThanEquals(self, second):
         if isinstance(second, Number):
             return Number(int(self.value >= second.value)).set_context(self.context), None
+        else:
+            return None, Value.illegal_operation(self, second)
 
     def and_comparedTo(self, second):
         if isinstance(second, Number):
             return Number(int(self.value and second.value)).set_context(self.context), None
+        else:
+            return None, Value.illegal_operation(self, second)
 
     def or_comparedTo(self, second):
         if isinstance(second, Number):
             return Number(int(self.value or second.value)).set_context(self.context), None
+        else:
+            return None, Value.illegal_operation(self, second)
 
     def notted(self):
         return Number(1 if self.value == 0 else 0).set_context(self.context), None
@@ -924,6 +950,74 @@ class Number:
     def __repr__(self):
         return str(self.value)
 
+class Value:
+    def __init__(self):
+        self.set_pos()
+        self.set_context()
+
+    def set_pos(self, pos_start=None, pos_end=None):
+        self.pos_start = pos_start
+        self.pos_end = pos_end
+        return self
+
+    def set_context(self, context=None):
+        self.context = context
+        return self
+
+    def added_to(self, second):
+        return None, self.illegal_operation(second)
+
+    def subtracted_by(self, second):
+        return None, self.illegal_operation(second)
+
+    def multiplied_by(self, second):
+        return None, self.illegal_operation(second)
+
+    def divided_by(self, second):
+        return None, self.illegal_operation(second)
+
+    def power_of(self, second):
+        return None, self.illegal_operation(second)
+
+    def get_comparison_equals(self, second):
+        return None, self.illegal_operation(second)
+
+    def get_comparison_notEquals(self, second):
+        return None, self.illegal_operation(second)
+
+    def get_comparison_lessThan(self, second):
+        return None, self.illegal_operation(second)
+
+    def get_comparison_greaterThan(self, second):
+        return None, self.illegal_operation(second)
+
+    def get_comparison_lessThanEquals(self, second):
+        return None, self.illegal_operation(second)
+
+    def get_comparison_greaterThanEquals(self, second):
+        return None, self.illegal_operation(second)
+
+    def and_comparedTo(self, second):
+        return None, self.illegal_operation(second)
+
+    def or_comparedTo(self, second):
+        return None, self.illegal_operation(second)
+
+    def notted(self):
+        return None, self.illegal_operation(second)
+
+    def execute(self, args):
+        return RTResult().failure(self.illegal_operation())
+
+    def copy(self):
+        raise Exception('No copy method defined')
+
+    def is_true(self):
+        return False
+
+    def illegal_operation(self, second=None):
+        if not second: second = self
+        return RTError(self.pos_start, second.pos_end, 'Illegal operation', self.context)
 
 
 #INTERPRETER CLASS
