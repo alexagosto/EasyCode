@@ -1,0 +1,15 @@
+
+
+>>VAR a = 10
+>>a 
+->10
+>>10/a
+
+1. Update lexer
+1a. Add 3 token types to lexer: ID Keyword Equals
+1b. Keyword -> VAR | ID -> variable_name123 | Equals -> = | <expr>
+
+2. Update grammar.txt 
+2a. VAR a = (6*6) where this is the ideal case in comparison to  (VAR a = 6) * 6
+
+3.Update parser
