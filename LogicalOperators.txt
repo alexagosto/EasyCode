@@ -20,11 +20,9 @@ not
 >>> not 1
 0
 
-TRUE 
 >>>TRUE
 1
 
-False
 >>>FALSE
 0
 
