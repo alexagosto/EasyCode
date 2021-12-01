@@ -9,8 +9,8 @@ COMANDS = [
     '_lbracket', '_rbracket', '_lcurl', '_rcurl', '_divideBy',
     '_multiplyBy', '_powerOF', '_incrementBy', '_substractBy',
     '_append', '_concat', '_removePos', '_semicolon', '_emptyList',
-    '_lessThanEquals', '_greaterThanEquals', '_iterateFor', '_iterateWhile',
-    '_thenContinue', '_afterContElif', '_afterContElse'
+    '_lessThanEquals', '_greaterThanEquals', '_iterateFor', '_iterateWhileUntil',
+    '_thenContinue', '_afterContElif', '_afterContElse', 
 
 ]
 
@@ -83,7 +83,7 @@ def lang_to_op(text):
     elif (mathOperation(text, '_concat')):
         return text.replace('_concat', '*')
     elif (mathOperation(text, '_removePos')):
-        return text.replace('_removePos', '-')
+        return text.replace('_removePos', '/')
     elif (mathOperation(text, '_semicolon')):
         return text.replace('_semicolon', ';')
     elif (mathOperation(text, '_emptyList')):
@@ -94,8 +94,8 @@ def lang_to_op(text):
         return text.replace('_lessThanEquals', '<=')
     elif (mathOperation(text, '_iterateFor')):
         return text.replace('_iterateFor', 'FOR')
-    elif (mathOperation(text, '_iterateWhile')):
-        return text.replace('_iterateWhile', 'WHILE')
+    elif (mathOperation(text, '_iterateWhileUntil')):
+        return text.replace('_iterateWhileUntil', 'WHILE <')
     elif (mathOperation(text, '_thenContinue')):
         return text.replace('_thenContinue', 'THEN CONTINUE')
     elif (mathOperation(text, '_afterContElif')):
