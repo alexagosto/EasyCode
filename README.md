@@ -90,8 +90,8 @@ Debug/Run the Main.py and enjoy EasyCode. The following are possible operations 
     -FOR LOOP | FOR | usage:
     ->> VAR factorial = 1
     -> 1
-    ->> FOR i = 1 TO 6 THEN VAR result = result * i
-    ->> result
+    ->> FOR i = 1 TO 6 THEN VAR factorial = factorial * i
+    ->> factorial
     -> 120
 
     -FOR LOOP | FOR | negative step for loop:
@@ -164,7 +164,23 @@ Keep in mind that the for loop is NOT inclusive, so in the first example above, 
     -> "Hello, Alex, nice to meet you!"
 
 ### 7- **Lists**
-    Placeholder for lists readmeupdate.
+    EasyCode implements lists using the bracket operator "[]", these lists allow the user to concatenate, append and remove items from the list by using mathematical operands. The following are the uses of mathematical operands on lists and examples of list usage.
+
+    -  "->" terminal response
+    - Example Operand: symbol | usage examples
+  
+    - List creation:   [] | [1, 2, 3] -> [1, 2 ,3]
+    - Append:           + | [1, 3 , 4] + 5 - > [1, 3, 4, 5]
+    - concatenate:      * | [1, 3, 2] * [4, 6, 7] -> [1, 3, 2, 4, 6, 7]
+    - Remove (position) / | [1, 4, 6, 7] / 2 -> [1, 4, 7]
+
+    
+    Both WHILE and FOR loops have lists implemented in them to so they will display all values as a list.
+    ->> FOR i = 1 TO 9 THEN 2 ^ i
+    -> [2, 4, 8, 16, 32, 64, 128, 256]
+
+
+
 
 
 
