@@ -111,7 +111,63 @@ Keep in mind that the for loop is NOT inclusive, so in the first example above, 
 
 
 ### 6- **Functions**
-    EasyCode
+    EasyCode implements Functions using the FUN keyword, this allows a user to create their own functions with the previous and following operands on this list. You can also create anonymous functions and assign them to variables 
+    The following are usage examples:
+    - Function declaration: FUN id(value1, value2 ..., valueX) -> functionPurpose
+    ->> USER INPUT
+    -> Terminal output
+
+    - Simple usage case:
+    ->> FUN add(a, b) -> a + b
+    -> <function add>
+    ->> add(3, 10)
+    -> 13
+
+    - Applying to variable:
+    ->> VAR add_func = add
+    -> <function add>
+    ->> add_func(1, 2) 
+    -> 3
+
+    - Anonymous Function
+    ->> FUN (a) -> a + 5
+    -> <function <anonymous>>
+
+    ->> VAR add_five_func = FUN (a) -> a + 5
+    -> <function <anonymous>>
+    ->> add_five_func(3) 
+    -> 8
+
+### 7- **Strings**
+    EasyCode implements very simple string functions, one may create, concatenate, multiply, and use strings in functions. The operand for string is: " " 
+    The following are some examples of using strings in EasyCode:
+
+    ->> USER INPUT
+    -> Terminal output
+
+    - String usage
+    ->> "This is how you create strings."
+    -> "This is how you create strings."
+
+    - String concatenation
+    ->> "This is " + "string concatenation in action."
+    -> "This is string concatenation in action."
+
+    - String multiplication
+    ->> "I " + "really " * 3 + "love EasyCode"
+    -> "I really really really love EasyCode"
+
+    - String + Functions
+    ->> FUN greeting(person) -> "Hello, " + person + ", nice to meet you!"
+    -> <function greeting>
+    ->> greeting("Alex")
+    -> "Hello, Alex, nice to meet you!"
+
+### 7- **Lists**
+    Placeholder for lists readmeupdate.
+
+
+
 ___
 
 The following is a log of progress on the language, starting at earliest development and

@@ -1,9 +1,9 @@
-import LexPars as shell
+import LexPars 
 
 print('Initializing EasyCode')
 while(True):
     text = input('EasyCode > ')
-    result, error = shell.run('<stdin>', text)
+    result, error = LexPars.run('<stdin>', text)
     if error: print(error.as_string)
     elif result: print(result)
 
