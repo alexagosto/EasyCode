@@ -1,7 +1,7 @@
 # Ciic4030-Project
 ### *PL Project based around creating a programming language that implements logic functionalities.*
 
-Debug/Run the Main.py and enjoy EasyCode. The following are possible operations and syntax that EasyCode allows you to do ordered from simplest to most complex:
+Run/Debug the Main.py and enjoy EasyCode. The following are possible operations and syntax that EasyCode allows you to do ordered from simplest to most complex:
 
 ### 1- **Arithmetic Commands**
     EasyCode makes full use and execution of the PEMDAS rule to keep all arithmetic equations correct. Each operation may use its preceding one in equations, so they may all be mixed and matched.
@@ -280,6 +280,12 @@ Keep in mind that the for loop is NOT inclusive, so in the first example above, 
     ->> list
     -> [1, 3, 5, 7, 9, 11, 13]
 
+    # Length | Returns a number pertaining to how long a list is.
+    ->> VAR list = [1, 3, 5]
+    -> [1, 3, 5]
+    ->> LEN(list)
+    -> 3
+
 
 ### 9- **Multiple statements in one line**
     EasyCode allows for multiple statements in a single line of code by using the semicolon (;) operand. This applies to all past features.
@@ -314,5 +320,15 @@ Keep in mind that the for loop is NOT inclusive, so in the first example above, 
     -> 0
     ->> a
     -> [1, 2, 3, 4, 5, 7]
+
+### 10- **Run Function**
+    The last function EasyCode boasts is the ability to read out files under the .ec ending with EasyCode syntax code. A file named ExampleCode.ec has been added to the project to give users an idea of how to use said feature, and how to get started on writing their own code.
+
+    Simply use the RUN function such as:
+    ->> RUN("ExampleCode.ec") 
+    
+    With that simple command the language will read out the code you have made and give you the result. 
+    
+    Thanks for using EasyCode!
 ___
 
