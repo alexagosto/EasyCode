@@ -8,7 +8,9 @@ COMANDS = [
     '_exact', '_lparen', '_rparen', '_min', '_power', '_exponent',
     '_lbracket', '_rbracket', '_lcurl', '_rcurl', '_divideBy',
     '_multiplyBy', '_powerOF', '_incrementBy', '_substractBy',
-    '_append', '_concat', '_removePos', '_SEMICOL'
+    '_append', '_concat', '_removePos', '_SEMICOL', '_emptyList',
+    '_lessThanEquals', '_greaterThanEquals', '_iterateFor', '_iterateWhile'
+
 ]
 
 
@@ -83,6 +85,16 @@ def lang_to_op(text):
         return text.replace('_removePos', '-')
     elif (mathOperation(text, '_SEMICOL')):
         return text.replace('_SEMICOL', ';')
+    elif (mathOperation(text, '_emptyList')):
+        return text.replace(text, '[]')
+    elif (mathOperation(text, '_greaterThanEquals')):
+        return text.replace('_greaterThanEquals', '>=')
+    elif (mathOperation(text, '_lessThanEquals')):
+        return text.replace('_lessThanEquals', '<=')
+    elif (mathOperation(text, '_iterateFor')):
+        return text.replace('_iterateFor', 'FOR')
+    elif (mathOperation(text, '_iterateWhile')):
+        return text.replace('_iterateWhile', 'WHILE')
 
 
 def run(text):
