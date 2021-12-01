@@ -2,7 +2,7 @@
 
 ### _PL Project based around creating a programming language that implements logic functionalities._
 
-Debug/Run the Main.py and enjoy EasyCode. The following are possible operations and syntax that EasyCode allows you to do ordered from simplest to most complex:
+Run/Debug the Main.py and enjoy EasyCode. The following are possible operations and syntax that EasyCode allows you to do ordered from simplest to most complex:
 
 ### 1- **Arithmetic Commands**
 
@@ -165,7 +165,7 @@ Keep in mind that the for loop is NOT inclusive, so in the first example above, 
     ->> greeting("Alex")
     -> "Hello, Alex, nice to meet you!"
 
-### 7- **Lists**
+### 8- **Lists**
 
     EasyCode implements lists using the bracket operator "[]", these lists allow the user to concatenate, append and remove items from the list by using mathematical operands. The following are the uses of mathematical operands on lists and examples of list usage.
 
@@ -182,7 +182,7 @@ Keep in mind that the for loop is NOT inclusive, so in the first example above, 
     ->> FOR i = 1 TO 9 THEN 2 ^ i
     -> [2, 4, 8, 16, 32, 64, 128, 256]
 
-### 8- **Built in Functions**
+### 9- **Built in Functions**
 
     EasyCode comes with some functions already built in that the user may call at any point, including variable assignment.
 
@@ -284,7 +284,13 @@ Keep in mind that the for loop is NOT inclusive, so in the first example above, 
     ->> list
     -> [1, 3, 5, 7, 9, 11, 13]
 
-### 9- **Multiple statements in one line**
+    # Length | Returns a number pertaining to how long a list is.
+    ->> VAR list = [1, 3, 5]
+    -> [1, 3, 5]
+    ->> LEN(list)
+    -> 3
+
+### 10- **Multiple statements in one line**
 
     EasyCode allows for multiple statements in a single line of code by using the semicolon (;) operand. This applies to all past features.
     Here is an example of this feature in action:
@@ -303,7 +309,9 @@ Keep in mind that the for loop is NOT inclusive, so in the first example above, 
     -> True
     -> 0
 
-### 10- **Return break and continue**
+---
+
+### 11- **Return break and continue**
 
     EasyCode has the functionality to use Return break and continue whithin loops and functions. This is mostly useful for expanding upon the multiple statements in a line feature.
     The following is a usage example:
@@ -321,7 +329,7 @@ Keep in mind that the for loop is NOT inclusive, so in the first example above, 
 
 ---
 
-### 11- **Functions with natural language alternative**
+### 12- **Functions with natural language alternative**
 
     EasyCode impelments a variety of commands which can be used with natural language to substitute functions and translate them to EasyCode code statements. This is mostly useful for implementing functions which should be easily human readable.
 
@@ -351,3 +359,19 @@ Keep in mind that the for loop is NOT inclusive, so in the first example above, 
     _thenContinue -> THEN CONTINUE
     _afterContElif -> THEN CONTINUE ELIF
     _afterContElse -> THEN CONTINUE ELSE
+
+---
+
+### 13- **Run Function**
+
+    The last function EasyCode boasts is the ability to read out files under the .ec ending with EasyCode syntax code. A file named ExampleCode.ec has been added to the project to give users an idea of how to use said feature, and how to get started on writing their own code.
+
+    Simply run the main.py file, and type in the RUN function as follows:
+    ->> RUN("ExampleCode.ec")
+
+    With that simple command the language will read out the code you have made and give you the result.
+    You're now ready to make your own EasyCode files. : )
+
+    Thanks for using EasyCode!
+
+---
