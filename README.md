@@ -1,5 +1,5 @@
 # Ciic4030-Project
-### *PL Project based around creating a python like programming language that implements logic functionalities.*
+### *PL Project based around creating a programming language that implements logic functionalities.*
 
 Debug/Run the Main.py and enjoy EasyCode. The following are possible operations and syntax that EasyCode allows you to do ordered from simplest to most complex:
 
