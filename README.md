@@ -324,10 +324,11 @@ Keep in mind that the for loop is NOT inclusive, so in the first example above, 
 ### 10- **Run Function**
     The last function EasyCode boasts is the ability to read out files under the .ec ending with EasyCode syntax code. A file named ExampleCode.ec has been added to the project to give users an idea of how to use said feature, and how to get started on writing their own code.
 
-    Simply use the RUN function such as:
+    Simply run the main.py file, and type in the RUN function as follows:
     ->> RUN("ExampleCode.ec") 
     
     With that simple command the language will read out the code you have made and give you the result. 
+    You're now ready to make your own EasyCode files. : )
     
     Thanks for using EasyCode!
 ___
