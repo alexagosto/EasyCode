@@ -139,8 +139,32 @@ Keep in mind that the for loop is NOT inclusive, so in the first example above, 
     -> 8
 
 ### 7- **Strings**
-    d
+    EasyCode implements very simple string functions, one may create, concatenate, multiply, and use strings in functions. The operand for string is: " " 
+    The following are some examples of using strings in EasyCode:
 
+    ->> USER INPUT
+    -> Terminal output
+
+    - String usage
+    ->> "This is how you create strings."
+    -> "This is how you create strings."
+
+    - String concatenation
+    ->> "This is " + "string concatenation in action."
+    -> "This is string concatenation in action."
+
+    - String multiplication
+    ->> "I " + "really " * 3 + "love EasyCode"
+    -> "I really really really love EasyCode"
+
+    - String + Functions
+    ->> FUN greeting(person) -> "Hello, " + person + ", nice to meet you!"
+    -> <function greeting>
+    ->> greeting("Alex")
+    -> "Hello, Alex, nice to meet you!"
+
+### 7- **Lists**
+    Placeholder for lists readmeupdate.
 
 
 
