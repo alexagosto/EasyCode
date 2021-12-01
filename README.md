@@ -179,8 +179,110 @@ Keep in mind that the for loop is NOT inclusive, so in the first example above, 
     ->> FOR i = 1 TO 9 THEN 2 ^ i
     -> [2, 4, 8, 16, 32, 64, 128, 256]
 
+### 8- **Built in Functions**
+    EasyCode comes with some functions already built in that the user may call at any point, including variable assignment. 
+    
+    The following is a list of included functions plus their usage example:
+    ->> USER INPUT
+    -> Terminal output
+
+    # PI function:
+    ->> VAR a = MATH_PI
+    -> 3.141592653589793
 
 
+    # Input function | INT input function
+    ->> VAR name = INPUT()
+    ->> Alex
+    -> "Alex" 
+    ->> name
+    -> "Alex"
+
+    ->> VAR age = INPUT_INT()
+    ->> 21
+    -> 21 
+    ->> age
+    -> 21
+
+    ->> VAR age = INPUT_INT()
+    ->> Twenty one
+    -> 'Twenty one' must be an integer. Try again!
+
+
+    # Clear | Clears the screen. CLS() does the same thing.
+    ->> VAR age = INPUT_INT()
+    ->> 21
+    -> 21 
+    ->> age
+    -> 21
+    ->> CLEAR()  |Proceeds to clear the screen|
+
+
+    # Check for number | Returns 1 for true 0 for false.
+    ->> IS_NUM(123)
+    -> 1
+
+    ->> IS_NUM([1, 2])
+    -> 0
+
+
+    # Check for string | Returns 1 for true 0 for false.
+    ->> IS_STR("DAD")
+    -> 1
+
+    ->> IS_STR(42)
+    -> 0
+
+
+    # Check for list | Returns 1 for true 0 for false.
+    ->> IS_LIST(123)
+    -> 0
+
+    ->> IS_LIST([1, 2])
+    -> 1
+
+
+    # Check for function | Returns 1 for true 0 for false.
+    ->> FUN add(a, b) -> a + b
+    -> <function add>
+    ->> IS_FUN(add)
+    -> 1
+
+    ->> IS_FUN(PRINT)
+    -> 1
+
+    ->> IS_FUN(57)
+    -> 0
+
+
+    # Append | Appends an object to a list. 
+    ->> VAR list = [1, 3, 5]
+    -> [1, 3, 5]
+    ->> APPEND(list, 7)
+    -> 0
+    ->> list
+    -> [1, 3, 5, 7]
+
+
+    # POP | Removes an element of a list by position, starts at 0. 
+    ->> VAR list = [1, 3, 5, 7]
+    -> [1, 3, 5]
+    ->> POP(list, 2)
+    -> 5
+    ->> list
+    -> [1, 3, 7]
+
+    # Extend | Concatenates lists.
+    ->> VAR list = [1, 3, 5, 7]
+    -> [1, 3, 5]
+    ->> EXTEND(list, [9, 11, 13])
+    -> 0
+    ->> list
+    -> [1, 3, 5, 7, 9, 11, 13]
+
+
+### 8- **Multi-Line Statements**
+    d
 
 
 
