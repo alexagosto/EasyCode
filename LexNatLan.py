@@ -55,7 +55,7 @@ def lang_to_op(text):
     elif(mathOperation(text, '_equal')):
         return text.replace('_equal', '=')
     elif(mathOperation(text, '_notEqual')):
-        return text.replace('_notEqual', '!=')
+        return text.replace('_notEqual', '!')
     elif(mathOperation(text, '_lparen')):
         return text.replace('_lparen', '(')
     elif(mathOperation(text, '_rparen')):
