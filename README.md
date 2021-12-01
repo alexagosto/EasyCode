@@ -111,7 +111,39 @@ Keep in mind that the for loop is NOT inclusive, so in the first example above, 
 
 
 ### 6- **Functions**
-    EasyCode
+    EasyCode implements Functions using the FUN keyword, this allows a user to create their own functions with the previous and following operands on this list. You can also create anonymous functions and assign them to variables 
+    The following are usage examples:
+    - Function declaration: FUN id(value1, value2 ..., valueX) -> functionPurpose
+    ->> USER INPUT
+    -> Terminal output
+
+    - Simple usage case:
+    ->> FUN add(a, b) -> a + b
+    -> <function add>
+    ->> add(3, 10)
+    -> 13
+
+    - Applying to variable:
+    ->> VAR add_func = add
+    -> <function add>
+    ->> add_func(1, 2) 
+    -> 3
+
+    - Anonymous Function
+    ->> FUN (a) -> a + 5
+    -> <function <anonymous>>
+
+    ->> VAR add_five_func = FUN (a) -> a + 5
+    -> <function <anonymous>>
+    ->> add_five_func(3) 
+    -> 8
+
+### 7- **Strings**
+    d
+
+
+
+
 ___
 
 The following is a log of progress on the language, starting at earliest development and
