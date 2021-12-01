@@ -281,30 +281,26 @@ Keep in mind that the for loop is NOT inclusive, so in the first example above, 
     -> [1, 3, 5, 7, 9, 11, 13]
 
 
-### 8- **Multi-Line Statements**
-    d
+### 8- **Multiple statements in one line**
+    EasyCode allows for multiple statements in a single line of code by using the semicolon (;) operand. This applies to all past features.
+    Here is an example of this feature in action:
+
+    # Single statement (same as before)
+    ->> 1 + 2
+    -> 3
+
+    # Multiple statements
+    ->> 1 + 2; 3 + 4
+    -> [3, 7]
+
+    # Multiple statements using IF statement
+    ->> IF 5==5 THEN; PRINT("Statement is:"); PRINT("True") ELSE PRINT("False")
+    -> Statement is:
+    -> True
+    -> 0
+
 
 
 
 ___
 
-The following is a log of progress on the language, starting at earliest development and
-TODO 
-11/28/2021:
-Currently the code will take an input and using a lexer and a parser creates intermediary code based around mathematical equations and with PEMDAS in mind.
-The code in its current state will not run any code as it has no iterpreter. That is the following process. 
-
-11/29/2021:
-    Code now has working interpreter and can process variables, code works as follows:
-    > VAR a = 5
-    > 5
-    > a
-    > 5
-    > a ^ 2
-    > 25 
-    > VAR a = a * 2
-    > 10
-    > a 
-    > 10
-
-Next Readme update will catalogue adding logical operators to the language.
