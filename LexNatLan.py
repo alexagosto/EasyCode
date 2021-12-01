@@ -6,7 +6,7 @@ COMANDS = [
     'plus', 'minus', 'divide',
     'multiply', 'pow', 'equal', 'notEqual',
     'lessThan', 'greaterThan', 'module', 'exact',
-    'lparen', 'rparen'
+    'lparen', 'rparen', 'min', 'power', 'exponent'
 ]
 
 
@@ -31,6 +31,14 @@ def lang_to_op(text):
         return text.replace('divide', '/')
     elif(mathOperation(text, 'multiply')):
         return text.replace('multiply', '*')
+    elif(mathOperation(text, 'min')):
+        return text.replace('min', '-')
+    elif(mathOperation(text, 'power')):
+        return text.replace('power', '^')
+    elif(mathOperation(text, 'pow')):
+        return text.replace('power', '^')
+    elif(mathOperation(text, 'exponent')):
+        return text.replace('exponent', '^')
     elif(mathOperation(text, 'module')):
         return text.replace('module', '%')
     elif(mathOperation(text, 'exact')):

@@ -3,6 +3,7 @@ import LexNatLan
 print('Initializing EasyCode')
 while(True):
     text = input('EasyCode > ')
+    
     text = LexNatLan.run(text)
 
     if text.strip() == "":
