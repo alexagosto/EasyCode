@@ -77,8 +77,10 @@ VARLIST = [
     'STEP',#6th
     'WHILE',#7th
     'FUN', #8th
-    'END'  #10th
-
+    'END',  #10th
+    'RETURN',#11th
+    'CONTINUE',#11th
+    'BREAK',#11th
 ]
 
 #CONSTANTS
@@ -458,11 +460,11 @@ class WhileNode:
         self.should_return_null = should_return_null
 
 class FuncDefNode:
-    def __init__(self, var_name_tok, arg_name_toks, body_node, should_return_null):
+    def __init__(self, var_name_tok, arg_name_toks, body_node, should_auto_return):
         self.var_name_tok = var_name_tok
         self.arg_name_toks = arg_name_toks
         self.body_node = body_node
-        self.should_return_null = should_return_null
+        self.should_auto_return = should_auto_return
 
         if self.var_name_tok:
             self.pos_start = self.var_name_tok.pos_start
@@ -470,6 +472,7 @@ class FuncDefNode:
             self.pos_start = self.arg_name_toks[0].pos_start
         else:
             self.pos_start = self.body_node.pos_start
+
         self.pos_end = self.body_node.pos_end
 
 class CallNode:
@@ -482,6 +485,22 @@ class CallNode:
             self.pos_end = self.arg_nodes[len(self.arg_nodes) - 1].pos_end
         else:
             self.pos_end = self.node_to_call.pos_end
+
+class ReturnNode:
+    def __init__(self, node_to_return, pos_start, pos_end):
+        self.node_to_return = node_to_return
+        self.pos_start = pos_start
+        self.pos_end = pos_end
+
+class ContinueNode:
+    def __init__(self, pos_start, pos_end):
+        self.pos_start = pos_start
+        self.pos_end = pos_end
+
+class BreakNode:
+    def __init__(self, pos_start, pos_end):
+        self.pos_start = pos_start
+        self.pos_end = pos_end
 
 class StringNode:
     def __init__(self, tok):
@@ -553,6 +572,10 @@ class Parser:
         self.update_current_tok()
         return self.current_tok
 
+    def update_current_tok(self):
+        if self.tok_idx >= 0 and self.tok_idx < len(self.tokens):
+            self.current_tok = self.tokens[self.tok_idx]
+
     def parse(self):
         response = self.statements()
         if not response.error and self.current_tok.type != TT_EOF:
@@ -572,10 +595,12 @@ class Parser:
             response.register_advancement()
             self.advance()
 
-        statement = response.register(self.expr())
+        statement = response.register(self.statement())
         if response.error: return response
         statements.append(statement)
+
         more_statements = True
+
         while True:
             newline_count = 0
             while self.current_tok.type == TT_NEWLINE:
@@ -584,15 +609,44 @@ class Parser:
                 newline_count += 1
             if newline_count == 0:
                 more_statements = False
+      
             if not more_statements: break
-            statement = response.try_register(self.expr())
+            statement = response.try_register(self.statement())
             if not statement:
                 self.reverse(response.to_reverse_count)
                 more_statements = False
                 continue
             statements.append(statement)
+
         return response.success(ListNode(statements, pos_start, self.current_tok.pos_end.copy()))
 
+    def statement(self):
+        response = ParseResult()
+        pos_start = self.current_tok.pos_start.copy()
+
+        if self.current_tok.matches(TT_KEYWORD, 'RETURN'):
+            response.register_advancement()
+            self.advance()
+
+            expr = response.try_register(self.expr())
+            if not expr:
+                self.reverse(response.to_reverse_count)
+            return response.success(ReturnNode(expr, pos_start, self.current_tok.pos_start.copy()))
+    
+        if self.current_tok.matches(TT_KEYWORD, 'CONTINUE'):
+            response.register_advancement()
+            self.advance()
+            return response.success(ContinueNode(pos_start, self.current_tok.pos_start.copy()))
+        
+        if self.current_tok.matches(TT_KEYWORD, 'BREAK'):
+            response.register_advancement()
+            self.advance()
+            return response.success(BreakNode(pos_start, self.current_tok.pos_start.copy()))
+
+        expr = response.register(self.expr())
+        if response.error:
+            return response.failure(InvalidSyntaxError(self.current_tok.pos_start, self.current_tok.pos_end, "Expected 'RETURN', 'CONTINUE', 'BREAK', 'VAR', 'IF', 'FOR', 'WHILE', 'FUN', int, float, identifier, '+', '-', '(', '[' or 'NOT'"))
+        return response.success(expr)
 
     def expr(self):
         response = ParseResult()
@@ -818,23 +872,23 @@ class Parser:
                 else:
                     return response.failure(InvalidSyntaxError(self.current_tok.pos_start, self.current_tok.pos_end,"Expected 'END'"))
             else:
-                expr = response.register(self.expr())
+                expr = response.register(self.statement())
                 if response.error: return response
                 else_case = (expr, False)
 
         return response.success(else_case)
 
     def if_expr_b_or_c(self):
-        res = ParseResult()
+        response = ParseResult()
         cases, else_case = [], None
         if self.current_tok.matches(TT_KEYWORD, 'ELIF'):
-            all_cases = res.register(self.if_expr_b())
-            if res.error: return res
+            all_cases = response.register(self.if_expr_b())
+            if response.error: return response
             cases, else_case = all_cases
         else:
-            else_case = res.register(self.if_expr_c())
-            if res.error: return res
-        return res.success((cases, else_case))
+            else_case = response.register(self.if_expr_c())
+            if response.error: return response
+        return response.success((cases, else_case))
 
 
     def if_expr_cases(self, case_keyword):
@@ -873,7 +927,7 @@ class Parser:
                 new_cases, else_case = all_cases
                 cases.extend(new_cases)
         else:
-            expr = response.register(self.expr())
+            expr = response.register(self.statement())
             if response.error: return response
             cases.append((condition, expr, False))
 
@@ -942,7 +996,7 @@ class Parser:
             self.advance() 
             return response.success(ForNode(var_name, start_value, end_value, step_value, body, True))
 
-        body = response.register(self.expr())
+        body = response.register(self.statement())
         if response.error: return response   
         return response.success(ForNode(var_name, start_value, end_value, step_value, body, False))
 
@@ -978,7 +1032,7 @@ class Parser:
 
             return response.success(WhileNode(condition, body, True))
     
-        body = response.register(self.expr())
+        body = response.register(self.statement())
         if response.error: return response
 
         return response.success(WhileNode(condition, body, False))
@@ -1037,13 +1091,13 @@ class Parser:
             node_to_return = response.register(self.expr())
             if response.error: return response
 
-            return response.success(FuncDefNode(var_name_tok, arg_name_toks, node_to_return, False))
+            return response.success(FuncDefNode(var_name_tok, arg_name_toks, node_to_return, True))
 
         if self.current_tok.type != TT_NEWLINE:
             return response.failure(InvalidSyntaxError(self.current_tok.pos_start, self.current_tok.pos_end, f"Expected '->' or NEWLINE"))
         response.register_advancement()
         self.advance()
-        node_to_return = response.register(self.statements())
+        body = response.register(self.statements())
         if response.error: return response
 
         if not self.current_tok.matches(TT_KEYWORD, 'END'):
@@ -1052,7 +1106,7 @@ class Parser:
         response.register_advancement()
         self.advance()
 
-        return response.success(FuncDefNode(var_name_tok,arg_name_toks, node_to_return, True))
+        return response.success(FuncDefNode(var_name_tok, arg_name_toks, body, False))
 
     def bin_op(self, func_a, ops, func_b=None):
         if func_b == None:
@@ -1092,20 +1146,54 @@ class Context:
 #PARSE RESULT
 class RTResult:
     def __init__(self):
+        self.reset()
+
+    def reset(self):
         self.value = None
         self.error = None
+        self.func_return_value = None
+        self.loop_should_continue = False
+        self.loop_should_break = False
 
     def register(self, response):
         self.error = response.error
+        self.func_return_value = response.func_return_value
+        self.loop_should_continue = response.loop_should_continue
+        self.loop_should_break = response.loop_should_break
         return response.value
 
     def success(self, value):
+        self.reset()
         self.value = value
         return self
 
+    def success_return(self, value):
+        self.reset()
+        self.func_return_value = value
+        return self
+  
+    def success_continue(self):
+        self.reset()
+        self.loop_should_continue = True
+        return self
+
+    def success_break(self):
+        self.reset()
+        self.loop_should_break = True
+        return self
+
     def failure(self, error):
+        self.reset()
         self.error = error
         return self
+
+    def should_return(self):
+        return (
+            self.error or
+            self.func_return_value or
+            self.loop_should_continue or
+            self.loop_should_break
+    )
 
 
 # NUMBER AND VALUE CLASS
@@ -1398,31 +1486,34 @@ class BaseFunction(Value):
     def check_and_populate_args(self, arg_names, args, exec_ctx):
         response = RTResult()
         response.register(self.check_args(arg_names, args))
-        if response.error: return response
+        if response.should_return(): return response
         self.populate_args(arg_names, args, exec_ctx)
         return response.success(None)
 
 
 class Function(BaseFunction):
-    def __init__(self, name, body_node, arg_names, should_return_null):
+    def __init__(self, name, body_node, arg_names, should_auto_return):
         super().__init__(name)
         self.body_node = body_node
         self.arg_names = arg_names
-        self.should_return_null = should_return_null
+        self.should_auto_return = should_auto_return
 
     def execute(self, args):
         response = RTResult()
         interpreter = Interpreter()
         exec_ctx = self.generate_new_context()
+
         response.register(self.check_and_populate_args(self.arg_names, args, exec_ctx))
-        if response.error: return response
+        if response.should_return(): return response
 
         value = response.register(interpreter.visit(self.body_node, exec_ctx))
-        if response.error: return response
-        return response.success(Number.null if self.should_return_null else value)
+        if response.should_return() and response.func_return_value == None: return response
+
+        ret_value = (value if self.should_auto_return else None) or response.func_return_value or Number.null
+        return response.success(ret_value)
 
     def copy(self):
-        copy = Function(self.name, self.body_node, self.arg_names)
+        copy = Function(self.name, self.body_node, self.arg_names, self.should_auto_return)
         copy.set_context(self.context)
         copy.set_pos(self.pos_start, self.pos_end)
         return copy
@@ -1443,10 +1534,10 @@ class BuiltInFunction(BaseFunction):
         method = getattr(self, method_name, self.no_visit_method)
 
         response.register(self.check_and_populate_args(method.arg_names, args, exec_ctx))
-        if response.error: return response
+        if response.should_return(): return response
 
         return_value = response.register(method(exec_ctx))
-        if response.error: return response
+        if response.should_return(): return response
         return response.success(return_value)
     
     def no_visit_method(self, node, context):
@@ -1599,16 +1690,16 @@ class Interpreter:
         response = RTResult()
         var_name = node.var_name_tok.value
         value = response.register(self.visit(node.value_node, context))
-        if response.error: return response
+        if response.should_return(): return response
         context.symbol_table.set(var_name, value)
         return response.success(value)
 
     def visit_BinOpNode(self, node, context):
         response = RTResult()
         left = response.register(self.visit(node.left_node, context))
-        if response.error: return response
+        if response.should_return(): return response
         right = response.register(self.visit(node.right_node, context))
-        if response.error: return response
+        if response.should_return(): return response
 
         if node.op_tok.type == TT_PLUS:
             result, error = left.added_to(right)
@@ -1659,7 +1750,7 @@ class Interpreter:
     def visit_UnaryOpNode(self, node, context):
         response = RTResult()
         number = response.register(self.visit(node.node, context))
-        if response.error: return response
+        if response.should_return(): return response
         error = None
 
         if node.op_tok.type == TT_MINUS: number, error = number.multiplied_by(Number(-1))
@@ -1675,49 +1766,62 @@ class Interpreter:
         response = RTResult()
         for condition, expr, should_return_null in node.cases:
             condition_value = response.register(self.visit(condition, context))
-            if response.error: return response
+            if response.should_return(): return response
 
             if condition_value.is_true():
                 expr_value = response.register(self.visit(expr, context))
-                if response.error: return response
+                if response.should_return(): return response
                 return response.success(Number.null if should_return_null else expr_value)
 
         if node.else_case:
             expr, should_return_null = node.else_case
             expr_value = response.register(self.visit(expr, context))
-            if response.error: return response
+            if response.should_return(): return response
             return response.success(Number.null if should_return_null else expr_value)
 
         return response.success(Number.null)
 
 
     def visit_ForNode(self, node, context):
-        response = RTResult()
+        res = RTResult()
         elements = []
 
-        start_value = response.register(self.visit(node.start_value_node, context))
-        if response.error: return response
+        start_value = res.register(self.visit(node.start_value_node, context))
+        if res.should_return(): return res
 
-        end_value = response.register(self.visit(node.end_value_node, context))
-        if response.error: return response
+        end_value = res.register(self.visit(node.end_value_node, context))
+        if res.should_return(): return res
 
-        if node.step_value_node: step_value = response.register(self.visit(node.step_value_node, context))
-        if response.error: return response
-        else: step_value = Number(1)
+        if node.step_value_node:
+            step_value = res.register(self.visit(node.step_value_node, context))
+            if res.should_return(): return res
+        else:
+            step_value = Number(1)
 
         i = start_value.value
 
-        if step_value.value >= 0: condition = lambda: i < end_value.value
-        else: condition = lambda: i > end_value.value
-        
+        if step_value.value >= 0:
+            condition = lambda: i < end_value.value
+        else:
+            condition = lambda: i > end_value.value
+    
         while condition():
             context.symbol_table.set(node.var_name_tok.value, Number(i))
             i += step_value.value
 
-            elements.append(response.register(self.visit(node.body_node, context)))
-            if response.error: return response
+            value = res.register(self.visit(node.body_node, context))
+            if res.should_return() and res.loop_should_continue == False and res.loop_should_break == False: return res
+            
+            if res.loop_should_continue:
+                continue
+            
+            if res.loop_should_break:
+                break
 
-        return response.success(Number.null if node.should_return_null else List(elements).set_context(context).set_pos(node.pos_start, node.pos_end))
+            elements.append(value)
+
+        return res.success(Number.null if node.should_return_null else
+      List(elements).set_context(context).set_pos(node.pos_start, node.pos_end))
 
 
     def visit_WhileNode(self, node, context):
@@ -1725,13 +1829,21 @@ class Interpreter:
         elements = []
         while True:
             condition = response.register(self.visit(node.condition_node, context))
-            if response.error: return response
+            if response.should_return(): return response
 
-            if not condition.is_true(): break
+            if not condition.is_true():
+                break
 
-            elements.append(response.register(self.visit(node.body_node, context)))
-            if response.error: return response
+            value = response.register(self.visit(node.body_node, context))
+            if response.should_return() and response.loop_should_continue == False and response.loop_should_break == False: return response
 
+            if response.loop_should_continue:
+                continue
+            
+            if response.loop_should_break:
+                break
+
+            elements.append(value)
         return response.success(Number.null if node.should_return_null else List(elements).set_context(context).set_pos(node.pos_start, node.pos_end))
 
 
@@ -1740,8 +1852,7 @@ class Interpreter:
         func_name = node.var_name_tok.value if node.var_name_tok else None
         body_node = node.body_node
         arg_names = [arg_name.value for arg_name in node.arg_name_toks]
-        func_value = Function(func_name, body_node, arg_names, node.should_return_null).set_context(context).set_pos(node.pos_start, node.pos_end)
-        
+        func_value = Function(func_name, body_node, arg_names, node.should_auto_return).set_context(context).set_pos(node.pos_start, node.pos_end)
         if node.var_name_tok:
             context.symbol_table.set(func_name, func_value)
         return response.success(func_value)
@@ -1751,15 +1862,15 @@ class Interpreter:
         response = RTResult()
         args = []
         value_to_call = response.register(self.visit(node.node_to_call, context))
-        if response.error: return response
+        if response.should_return(): return response
         value_to_call = value_to_call.copy().set_pos(node.pos_start, node.pos_end)
 
         for arg_node in node.arg_nodes:
             args.append(response.register(self.visit(arg_node, context)))
-            if response.error: return response
+            if response.should_return(): return response
 
         return_value = response.register(value_to_call.execute(args))
-        if response.error: return response
+        if response.should_return(): return response
         return_value = return_value.copy().set_pos(node.pos_start, node.pos_end).set_context(context)
         return response.success(return_value)
     
@@ -1772,11 +1883,26 @@ class Interpreter:
 
         for element_node in node.element_nodes:
             elements.append(response.register(self.visit(element_node, context)))
-            if response.error: return response
+            if response.should_return(): return response
 
         return response.success(List(elements).set_context(context).set_pos(node.pos_start, node.pos_end))   
 
+    def visit_ReturnNode(self, node, context):
+        response = RTResult()
 
+        if node.node_to_return:
+            value = response.register(self.visit(node.node_to_return, context))
+        if response.should_return(): return response
+        else:
+            value = Number.null
+        
+        return response.success_return(value)
+    
+    def visit_ContinueNode(self, node, context):
+        return RTResult().success_continue()
+
+    def visit_BreakNode(self, node, context):
+        return RTResult().success_break()
 
 
 ##############################################################################################################

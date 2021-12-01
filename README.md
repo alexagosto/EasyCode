@@ -281,7 +281,7 @@ Keep in mind that the for loop is NOT inclusive, so in the first example above, 
     -> [1, 3, 5, 7, 9, 11, 13]
 
 
-### 8- **Multiple statements in one line**
+### 9- **Multiple statements in one line**
     EasyCode allows for multiple statements in a single line of code by using the semicolon (;) operand. This applies to all past features.
     Here is an example of this feature in action:
 
@@ -300,7 +300,19 @@ Keep in mind that the for loop is NOT inclusive, so in the first example above, 
     -> 0
 
 
+### 10- **Return break and continue**
+    EasyCode has the functionality to use Return break and continue whithin loops and functions. This is mostly useful for expanding upon the multiple statements in a line feature.
+    The following is a usage example:
 
+    ->> USER INPUT
+    -> Terminal output
 
+    # Return whithin multi-line function
+    ->> VAR a = [1, 2, 3]
+    -> [1, 2, 3]
+    ->> FOR i = 4 TO 10 THEN; IF i == 6 THEN CONTINUE ELIF i == 8 THEN BREAK; VAR a = a + i; END
+    -> 0
+    ->> a
+    -> [1, 2, 3, 4, 5, 7]
 ___
 

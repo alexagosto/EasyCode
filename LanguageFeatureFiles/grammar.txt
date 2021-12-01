@@ -1,5 +1,10 @@
 statements  	: NEWLINE* expr (NEWLINE+ expr)* NEWLINE*
 
+statement		: KEYWORD:RETURN expr?
+				: KEYWORD:CONTINUE
+				: KEYWORD:BREAK
+				: expr
+
 expr            : KEYWORD:VAR ID EQ expr  
                 : comp-expr(KEYWORD: AND|OR) comp-expr)*
                 
@@ -26,15 +31,15 @@ atom            : INT|FLOAT|STRING|ID
 
 
 if-expr			: KEYWORD:IF expr KEYWORD:THEN
-              		(expr if-expr-b|if-expr-c?)
+              		(statement if-expr-b|if-expr-c?)
             	|(NEWLINE statements KEYWORD:END|if-expr-b|if-expr-c)
 
 if-expr-b		: KEYWORD:ELIF expr KEYWORD:THEN
-              		(expr if-expr-b|if-expr-c?)
+              		(statement if-expr-b|if-expr-c?)
             	|(NEWLINE statements KEYWORD:END|if-expr-b|if-expr-c)
 
 if-expr-c   	: KEYWORD:ELSE
-              		expr
+              		statement
             	| (NEWLINE statements KEYWORD:END)
 
 
