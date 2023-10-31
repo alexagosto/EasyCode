@@ -1,4 +1,4 @@
-# Ciic4030-Project
+#  EasyCode
 
 ### _PL Project based around creating a programming language that implements logic functionalities._
 
